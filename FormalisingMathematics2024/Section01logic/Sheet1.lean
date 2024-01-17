@@ -242,10 +242,13 @@ example :
     (((P → Q → Q) → (P → Q) → Q) → R) →
       ((((P → P) → Q) → P → P → Q) → R) → (((P → P → Q) → (P → P) → Q) → R) → R := by
   intro hPQQPQQR
-  intro h2
-  intro h3
-  apply hPQQPQQR
-  intro hPQQ
-  intro hPQ
-  sorry
+  intro hPPQPPQR
+  intro hPPQPPQ
+  apply hPPQPPQR
+  intro hPPQ
+  intro hP
+  intro hP
+  apply hPPQ
+  intro hP
+  exact hP
   done

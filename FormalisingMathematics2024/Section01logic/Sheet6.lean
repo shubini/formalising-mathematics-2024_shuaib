@@ -27,44 +27,116 @@ and also the following tactics
 variable (P Q R S : Prop)
 
 example : P → P ∨ Q := by
-  sorry
+  intro hP
+  left
+  exact hP
   done
 
 example : Q → P ∨ Q := by
-  sorry
+  intro hQ
+  right
+  exact hQ
   done
 
 example : P ∨ Q → (P → R) → (Q → R) → R := by
-  sorry
+  intro hPoQ
+  cases' hPoQ with hP hQ
+  intro h
+  intro h2
+  apply h
+  exact hP
+
+  intro h
+  intro h2
+  apply h2
+  exact hQ
   done
 
 -- symmetry of `or`
 example : P ∨ Q → Q ∨ P := by
-  sorry
+  intro hPQ
+  cases' hPQ with hP hQ
+  right
+  exact hP
+  left
+  exact hQ
   done
 
 -- associativity of `or`
 example : (P ∨ Q) ∨ R ↔ P ∨ Q ∨ R := by
-  sorry
+  constructor
+  rintro ((hP | hQ) | hR)
+  left; exact hP
+  right; left; exact hQ
+  right; right; exact hR
+
+  rintro (hP | hQ | hR)
+  left; left; exact hP
+  left; right; exact hQ
+  right; exact hR
   done
 
 example : (P → R) → (Q → S) → P ∨ Q → R ∨ S := by
-  sorry
+  rintro (hPR  hQS (hP|hQ))
+  left; apply hPR; exact hP
+  right; apply hQS; exact hQ
   done
 
 example : (P → Q) → P ∨ R → Q ∨ R := by
-  sorry
+  rintro (hPQ (hP|hR))
+  left; apply hPQ; exact hP
+  right; exact hR
   done
 
 example : (P ↔ R) → (Q ↔ S) → (P ∨ Q ↔ R ∨ S) := by
-  sorry
+  rintro (hPR hQS)
+  rw [hPR]
+  rw [hQS]
   done
 
 -- de Morgan's laws
 example : ¬(P ∨ Q) ↔ ¬P ∧ ¬Q := by
-  sorry
+  constructor
+  intro h
+  constructor
+  intro hP
+  apply h
+  left; exact hP
+
+  intro hQ
+  apply h
+  right; exact hQ
+
+  intro h
+  by_contra h2
+  cases' h with hnP hnQ
+  cases' h2 with hP hQ
+  apply hnP; exact hP
+  apply hnQ; exact hQ
   done
 
 example : ¬(P ∧ Q) ↔ ¬P ∨ ¬Q := by
-  sorry
+  constructor
+  intro h
+  by_cases hP:P
+  right
+  intro hQ
+  apply h
+  constructor
+  exact hP
+  exact hQ
+  left
+  exact hP
+
+  intro h
+  by_contra h2
+  cases' h with hnP hnQ
+  apply hnP
+  cases' h2 with hP hQ
+  exact hP
+
+  apply hnQ
+  cases' h2 with hP hQ
+  exact hQ
+
   done
