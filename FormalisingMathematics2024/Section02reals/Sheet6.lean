@@ -79,13 +79,25 @@ theorem tendsTo_neg_const_mul {a : ℕ → ℝ} {t : ℝ} (h : TendsTo a t) {c :
 to `c * t`. -/
 theorem tendsTo_const_mul {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t) :
     TendsTo (fun n ↦ c * a n) (c * t) := by
+  obtain hc | hc | hc := lt_trichotomy c 0
+  exact tendsTo_neg_const_mul h hc
 
+  rw [hc]
+  rw [tendsTo_def]
+  simp
+  intro ε hε
+  use 0
+  intro n hn
+  exact hε
+
+  exact tendsTo_pos_const_mul h hc
 
 /-- If `a(n)` tends to `t` and `c` is a constant then `a(n) * c` tends
 to `t * c`. -/
 theorem tendsTo_mul_const {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t) :
     TendsTo (fun n ↦ a n * c) (t * c) := by
-sorry
+  simpa [mul_comm] using tendsTo_const_mul c h
+  done
 
 -- another proof of this result
 theorem tendsTo_neg' {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (fun n ↦ -a n) (-t) := by
@@ -95,23 +107,42 @@ theorem tendsTo_neg' {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (f
 `a(n)` tends to `t + u`. -/
 theorem tendsTo_of_tendsTo_sub {a b : ℕ → ℝ} {t u : ℝ} (h1 : TendsTo (fun n ↦ a n - b n) t)
     (h2 : TendsTo b u) : TendsTo a (t + u) := by
-  sorry
+
+  simpa using tendsTo_add h1 h2
 
 /-- If `a(n)` tends to `t` then `a(n)-t` tends to `0`. -/
+example (a b : ℕ → ℝ) (t s: ℝ) (h : |a n| < t) (h2 : |b n| < s): |a n| * |b n| < t * s := by
+  simpa using mul_lt_mul'' h h2
+
 theorem tendsTo_sub_lim_iff {a : ℕ → ℝ} {t : ℝ} : TendsTo a t ↔ TendsTo (fun n ↦ a n - t) 0 := by
-  sorry
+  constructor
+  intro h
+  simpa using tendsTo_sub h (tendsTo_const t)
+  intro h
+  simpa using tendsTo_add h (tendsTo_const t)
 
 /-- If `a(n)` and `b(n)` both tend to zero, then their product tends
 to zero. -/
 theorem tendsTo_zero_mul_tendsTo_zero {a b : ℕ → ℝ} (ha : TendsTo a 0) (hb : TendsTo b 0) :
     TendsTo (fun n ↦ a n * b n) 0 := by
-  sorry
+  intro ε hε
+  obtain⟨X, hX⟩ := ha ε hε
+  obtain ⟨Y, hY⟩ := hb 1 zero_lt_one
+  use max X Y
+  intro n hn
+  simp at *
+  rw [abs_mul]
+  specialize hX n hn.1
+  specialize hY n hn.2
+  simpa using mul_lt_mul'' hX hY
+  done
 
 /-- If `a(n)` tends to `t` and `b(n)` tends to `u` then
 `a(n)*b(n)` tends to `t*u`. -/
 theorem tendsTo_mul (a b : ℕ → ℝ) (t u : ℝ) (ha : TendsTo a t) (hb : TendsTo b u) :
     TendsTo (fun n ↦ a n * b n) (t * u) := by
-sorry
+  simpa [mul_comm] using tendsTo_const t u ha hb
+  done
 
 -- something we never used!
 /-- A sequence has at most one limit. -/
