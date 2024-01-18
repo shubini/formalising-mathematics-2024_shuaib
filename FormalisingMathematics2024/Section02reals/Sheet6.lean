@@ -82,8 +82,7 @@ theorem tendsTo_const_mul {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t
   obtain hc | hc | hc := lt_trichotomy c 0
   exact tendsTo_neg_const_mul h hc
 
-  rw [hc]
-  rw [tendsTo_def]
+  rw [hc, tendsTo_def]
   simp
   intro ε hε
   use 0
@@ -101,7 +100,7 @@ theorem tendsTo_mul_const {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t
 
 -- another proof of this result
 theorem tendsTo_neg' {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (fun n ↦ -a n) (-t) := by
-  simpa using tendsTo_const_mul (-1) ha
+  simpa only [neg_mul, one_mul] using tendsTo_const_mul (-1) ha
 
 /-- If `a(n)-b(n)` tends to `t` and `b(n)` tends to `u` then
 `a(n)` tends to `t + u`. -/
@@ -111,13 +110,13 @@ theorem tendsTo_of_tendsTo_sub {a b : ℕ → ℝ} {t u : ℝ} (h1 : TendsTo (fu
   simpa using tendsTo_add h1 h2
 
 /-- If `a(n)` tends to `t` then `a(n)-t` tends to `0`. -/
-example (a b : ℕ → ℝ) (t s: ℝ) (h : |a n| < t) (h2 : |b n| < s): |a n| * |b n| < t * s := by
-  simpa using mul_lt_mul'' h h2
+example (a b c: ℝ) (hc: 0 < c): a < b / c ↔ c * a < b := by
+  exact lt_div_iff' hc
 
 theorem tendsTo_sub_lim_iff {a : ℕ → ℝ} {t : ℝ} : TendsTo a t ↔ TendsTo (fun n ↦ a n - t) 0 := by
   constructor
   intro h
-  simpa using tendsTo_sub h (tendsTo_const t)
+  simpa [tendsTo_def] using tendsTo_sub h (tendsTo_const t)
   intro h
   simpa using tendsTo_add h (tendsTo_const t)
 
@@ -127,7 +126,7 @@ theorem tendsTo_zero_mul_tendsTo_zero {a b : ℕ → ℝ} (ha : TendsTo a 0) (hb
     TendsTo (fun n ↦ a n * b n) 0 := by
   intro ε hε
   obtain⟨X, hX⟩ := ha ε hε
-  obtain ⟨Y, hY⟩ := hb 1 zero_lt_one
+  obtain ⟨Y, hY⟩ := hb 1 (by norm_num)
   use max X Y
   intro n hn
   simp at *
@@ -137,16 +136,52 @@ theorem tendsTo_zero_mul_tendsTo_zero {a b : ℕ → ℝ} (ha : TendsTo a 0) (hb
   simpa using mul_lt_mul'' hX hY
   done
 
+example (x y : ℝ) : |x| * |y| = |x * y| := by exact (abs_mul x y).symm
+
 /-- If `a(n)` tends to `t` and `b(n)` tends to `u` then
 `a(n)*b(n)` tends to `t*u`. -/
 theorem tendsTo_mul (a b : ℕ → ℝ) (t u : ℝ) (ha : TendsTo a t) (hb : TendsTo b u) :
     TendsTo (fun n ↦ a n * b n) (t * u) := by
-  simpa [mul_comm] using tendsTo_const t u ha hb
-  done
+  intro ε hε
+  obtain⟨X, hX⟩ := ha (ε ^ 1/2) (by linarith)
+  obtain⟨Y, hY⟩ := hb (ε ^ 1/2) (by linarith)
+  use max X Y
+  intro n hn
+  specialize hX n (by exact le_of_max_le_left hn)
+  specialize hY n (by exact le_of_max_le_right hn)
+  simp [hX, hY, abs_mul]
+  exact
+  sorry
 
 -- something we never used!
 /-- A sequence has at most one limit. -/
+example (t s : ℝ) : t - s = 0 ↔ t = s:= by exact sub_eq_zero
+
+example (t s : ℝ) (h: t ≠ s): |t-s| > 0:= by
+  simp [h, sub_eq_zero]
+
+
+
 theorem tendsTo_unique (a : ℕ → ℝ) (s t : ℝ) (hs : TendsTo a s) (ht : TendsTo a t) : s = t := by
-  sorry
+  by_contra h
+  wlog hlt : s < t
+  · cases' Ne.lt_or_lt h with h3 h3
+    · contradiction
+    · specialize this a t s
+      apply this ht hs (by exact Ne.symm h)
+      exact h3
+  have h2 : TendsTo (0) (s - t) := by
+    simpa using tendsTo_sub hs ht
+  rw [tendsTo_def] at h2
+  simp at h2
+  specialize h2
+  specialize h2 |t - s| (by simp [h, Ne.symm, sub_eq_zero])
+  obtain⟨B, hB⟩ := h2
+  specialize hB B
+  have hBB: B ≤ B := by rfl
+  apply hB at hBB
+  rw [← lt_self_iff_false |t-s|]
+  exact hBB
+  done
 
 end Section2sheet6
