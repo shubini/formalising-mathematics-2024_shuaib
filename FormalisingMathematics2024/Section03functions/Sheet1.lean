@@ -71,14 +71,22 @@ theorem comp_eval (f : X → Y) (g : Y → Z) (x : X) : (g ∘ f) x = g (f x) :=
 -- Why did we just prove all those theorems with a proof
 -- saying "it's true by definition"? Because now, if we want,
 -- we can `rw` the theorems to replace things by their definitions.
-example : Injective (id : X → X) :=
-  by-- you can start with `rw injective_def` if you like,
+example : Injective (id : X → X) := by
+  rw [injective_def]
+  intro a b
+  rw [id_eval]
+  rw [id_eval]
+  intro h; exact h
+  -- you can start with `rw injective_def` if you like,
   -- and later you can `rw id_eval`, although remember that `rw` doesn't
   -- work under binders like `∀`, so use `intro` first.
-  sorry
+  done
 
 example : Surjective (id : X → X) := by
-  sorry
+  rw [surjective_def]
+  intro b
+  use b
+  rw [id_eval]
 
 -- Theorem: if f : X → Y and g : Y → Z are injective,
 -- then so is g ∘ f
@@ -129,10 +137,24 @@ example (f : X → Y) (g : Y → Z) (hf : Surjective f) (hg : Surjective g) : Su
 
 -- This is a question on the IUM (Imperial introduction to proof course) function problem sheet
 example (f : X → Y) (g : Y → Z) : Injective (g ∘ f) → Injective f := by
-  sorry
+  intro h
+  rw [injective_def] at *
+  intro a b
+  specialize h a b
+  intro f_inj
+  apply h
+  change g (f a) = g (f b)
+  rw [f_inj]
+  done
+
 
 -- This is another one
 example (f : X → Y) (g : Y → Z) : Surjective (g ∘ f) → Surjective g := by
-  sorry
+  intro h
+  rw [surjective_def] at *
+  intro b
+  have h1 : ∃ y, g (f y) = b := h b
+  cases' h1 with y hy
+  use (f y)
 
 end Section3sheet1

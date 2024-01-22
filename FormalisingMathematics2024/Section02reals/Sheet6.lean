@@ -142,16 +142,18 @@ example (x y : ℝ) : |x| * |y| = |x * y| := by exact (abs_mul x y).symm
 `a(n)*b(n)` tends to `t*u`. -/
 theorem tendsTo_mul (a b : ℕ → ℝ) (t u : ℝ) (ha : TendsTo a t) (hb : TendsTo b u) :
     TendsTo (fun n ↦ a n * b n) (t * u) := by
-  intro ε hε
-  obtain⟨X, hX⟩ := ha (ε ^ 1/2) (by linarith)
-  obtain⟨Y, hY⟩ := hb (ε ^ 1/2) (by linarith)
-  use max X Y
-  intro n hn
-  specialize hX n (by exact le_of_max_le_left hn)
-  specialize hY n (by exact le_of_max_le_right hn)
-  simp [hX, hY, abs_mul]
-  exact
-  sorry
+  rw [tendsTo_sub_lim_iff] at *
+  have h : ∀ n, a n * b n - t * u = (a n - t) * (b n - u) + t * (b n - u) + (a n - t) * u := by
+    intro
+    ring
+  simp [h]
+  have h0 : (0 : ℝ) = 0  + t * 0 + 0 * u := by ring
+  rw [h0]
+  refine' tendsTo_add (tendsTo_add _ _) _
+  · exact tendsTo_zero_mul_tendsTo_zero ha hb
+  · exact tendsTo_const_mul t hb
+  · exact tendsTo_mul_const u ha
+
 
 -- something we never used!
 /-- A sequence has at most one limit. -/
