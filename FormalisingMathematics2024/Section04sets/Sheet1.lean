@@ -76,18 +76,57 @@ Let's prove some theorems.
 
 -/
 
-example : A ⊆ A := by sorry
+example : A ⊆ A := by
+  rfl
 
-example : A ⊆ B → B ⊆ C → A ⊆ C := by sorry
+example : A ⊆ B → B ⊆ C → A ⊆ C := by
+  intro h h2 a h4
+  specialize h2 (h h4)
+  exact h2
 
-example : A ⊆ A ∪ B := by sorry
+example : A ⊆ A ∪ B := by
+  intro a ha
+  change a ∈ A ∨ a ∈ B
+  left
+  exact ha
 
-example : A ∩ B ⊆ A := by sorry
+example : A ∩ B ⊆ A := by
+  intro a hab
+  change a ∈ A ∧ a ∈ B at hab
+  cases' hab with l r
+  exact l
 
-example : A ⊆ B → A ⊆ C → A ⊆ B ∩ C := by sorry
+example : A ⊆ B → A ⊆ C → A ⊆ B ∩ C := by
+  intro haib
+  intro haic
+  intro a ha
+  constructor
+  · specialize haib ha
+    exact haib
+  · specialize haic ha
+    exact haic
 
-example : B ⊆ A → C ⊆ A → B ∪ C ⊆ A := by sorry
+example : B ⊆ A → C ⊆ A → B ∪ C ⊆ A := by
+  intro hBinA
+  intro hCinA
+  intro a hainBuC
+  cases' hainBuC with haB haC
+  · specialize hBinA haB; exact hBinA
+  · specialize hCinA haC; exact hCinA
 
-example : A ⊆ B → C ⊆ D → A ∪ C ⊆ B ∪ D := by sorry
+example : A ⊆ B → C ⊆ D → A ∪ C ⊆ B ∪ D := by
+  intro hAB hCD x hxAC
+  cases' hxAC with ha hc
+  · specialize hAB ha
+    left
+    exact hAB
+  · specialize hCD hc
+    right
+    exact hCD
 
-example : A ⊆ B → C ⊆ D → A ∩ C ⊆ B ∩ D := by sorry
+example : A ⊆ B → C ⊆ D → A ∩ C ⊆ B ∩ D := by
+  intro hAB hCD x h
+  cases' h with hl hr
+  constructor
+  · specialize hAB hl; exact hAB
+  · specialize hCD hr; exact hCD
