@@ -27,8 +27,13 @@ example (X Y : Type) [MetricSpace X] [MetricSpace Y] (f : X → Y) :
 
 example (X Y Z : Type) [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
     (f : X → Y) (g : Y → Z) (hf : Continuous f) (hg : Continuous g) : Continuous (g ∘ f) := by
-  -- can you prove this from first principles? Start with `rw [continuous_def]`.
-  sorry
+  -- can you prove this from first principles? Start with `rw [continuous_def] at *`.
+  rw [continuous_def] at *
+  intros s hs
+  apply hg at hs
+  apply hf at hs
+  exact hs
+
 
 example (X Y Z : Type) [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
     (f : X → Y) (g : Y → Z) (hf : Continuous f) (hg : Continuous g) : Continuous (g ∘ f) := by
