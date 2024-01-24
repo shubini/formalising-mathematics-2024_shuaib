@@ -51,18 +51,18 @@ example (g : G) : g⁻¹ * g = 1 :=
 -- with the name of the axiom it found. Note also that you can instead *guess*
 -- the names of the axioms. For example what do you think the proof of `1 * a = a` is called?
 example (a b c : G) : a * b * c = a * (b * c) := by
-  sorry
+  exact mul_assoc a b c
 
 -- can be found with `library_search` if you didn't know the answer already
 example (a : G) : a * 1 = a := by
-  sorry
+  exact mul_one a
 
 -- Can you guess the last two?
 example (a : G) : 1 * a = a := by
-  sorry
+  exact one_mul a
 
 example (a : G) : a * a⁻¹ = 1 := by
-  sorry
+  exact mul_inv_self a
 
 -- As well as the axioms, Lean has many other standard facts which are true
 -- in all groups. See if you can prove these from the axioms, or find them
@@ -71,26 +71,76 @@ example (a : G) : a * a⁻¹ = 1 := by
 variable (a b c : G)
 
 example : a⁻¹ * (a * b) = b := by
-  sorry
+  rw [← mul_assoc a⁻¹ a b]
+  rw [inv_mul_self]
+  exact one_mul b
 
 example : a * (a⁻¹ * b) = b := by
-  sorry
+  rw [← mul_assoc a a⁻¹ b]
+  rw [mul_inv_self]
+  exact one_mul b
 
 example {a b c : G} (h1 : b * a = 1) (h2 : a * c = 1) : b = c := by
   -- hint for this one if you're doing it from first principles: `b * (a * c) = (b * a) * c`
-  sorry
+  have h: b * (a * c) = (b * a) * c := by
+    exact (mul_assoc b a c).symm
+  rw [h1] at h
+  rw [h2] at h
+  rw [one_mul] at h
+  rw [mul_one] at h
+  exact h
 
 example : a * b = 1 ↔ a⁻¹ = b := by
-  sorry
+  constructor
+  · intro h
+    have h2: a⁻¹ * (a * b) = a⁻¹ := by
+      rw [h]
+      exact mul_one a⁻¹
+    rw [←mul_assoc a⁻¹ a b] at h2
+    rw [inv_mul_self] at h2
+    rw [one_mul b] at h2
+    exact h2.symm
+  · intro h
+    rw [←h]
+    exact mul_inv_self a
+
+example (a b c : R) (h: a = b) (h2: b = c) : a = c := by
+  rw [h]
+  exact h2
 
 example : (1 : G)⁻¹ = 1 := by
-  sorry
+  have h: (1:G)⁻¹ * 1 = 1⁻¹ := by exact mul_one (1:G)⁻¹
+  rw [←h]
+  exact inv_mul_self 1
+
+
 
 example : a⁻¹⁻¹ = a := by
-  sorry
+  have h: a⁻¹⁻¹ * a⁻¹ = 1 := by exact inv_mul_self a⁻¹
+  have h2: a⁻¹⁻¹ * a⁻¹ * a = a := by
+    rw [h]; exact one_mul a
+  rw [mul_assoc] at h2
+  rw [inv_mul_self a] at h2
+  rw [mul_one] at h2
+  exact h2
+
 
 example : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
-  sorry
+  have h: (a * b)⁻¹ * (a * b) = 1 := by exact inv_mul_self (a * b)
+  rw [←mul_assoc] at h
+  have h2: (a * b)⁻¹ * (a * (b * b⁻¹) * a⁻¹) = b⁻¹ * a⁻¹ := by
+    rw [← mul_assoc]
+    rw [← mul_assoc]
+    rw [← mul_assoc]
+    rw [h]
+    rw [mul_assoc]
+    rw [one_mul]
+  rw [mul_assoc] at h2
+  rw [mul_inv_self b] at h2
+  rw [one_mul a⁻¹] at h2
+  rw [mul_inv_self a] at h2
+  rw [mul_one (a * b)⁻¹] at h2
+  exact h2
 
 /-
 
@@ -106,8 +156,25 @@ try and prove the next example manually by rewriting with the lemmas above
 educated guessing).
 
 -/
-example : (b⁻¹ * a⁻¹)⁻¹ * 1⁻¹⁻¹ * b⁻¹ * (a⁻¹ * a⁻¹⁻¹⁻¹) * a = 1 := by group
+example : (b⁻¹ * a⁻¹)⁻¹ * 1⁻¹⁻¹ * b⁻¹ * (a⁻¹ * a⁻¹⁻¹⁻¹) * a = 1 := by
+  group
 
 -- Try this trickier problem: if g^2=1 for all g in G, then G is abelian
 example (h : ∀ g : G, g * g = 1) : ∀ g h : G, g * h = h * g := by
-  sorry
+  intro g
+  intro g2
+
+  have hg: ∀ g : G, g⁻¹ = g := by
+    intro g
+    have h2 : g⁻¹ * g * g = g := by
+      rw [inv_mul_self g]
+      rw [one_mul]
+    specialize h g
+    rw [mul_assoc] at h2
+    rw [h] at h2; simp at h2; exact h2
+
+  have h: (g * g2)⁻¹ = g2⁻¹ * g⁻¹ := by exact mul_inv_rev g g2
+  rw [hg] at h
+  rw [hg g2] at h
+  rw [hg g] at h
+  exact h

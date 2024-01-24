@@ -19,6 +19,13 @@ the nonconstructive (propositional) way of talking about bijections.
 Let `X` and `Y` be types, and say `f : X → Y` is a function.
 
 -/
+open Function
+theorem injective_def (f : X → Y) : Injective f ↔ ∀ a b : X, f a = f b → a = b := by
+  rfl
+theorem surjective_def (f : X → Y) : Surjective f ↔ ∀ b : Y, ∃ a : X, f a = b := by
+  rfl
+theorem comp_eval (f : X → Y) (g : Y → Z) (x : X) : (g ∘ f) x = g (f x) := by
+  rfl
 
 variable (X Y : Type) (f : X → Y)
 
@@ -48,7 +55,23 @@ example : f.Bijective ↔
 -- please ask. There's lots of little Lean tricks which make this
 -- question not too bad, but there are lots of little pitfalls too.
 example : (∃ g : Y → X, f ∘ g = id ∧ g ∘ f = id) → f.Bijective := by
-  sorry
+  rintro ⟨f2, ⟨hf, hf2⟩⟩
+  constructor
+  · rw [injective_def]
+    intro a b fab
+    have h: (f2 ∘ f) a = (f2 ∘ f) b := by
+      simp [fab]
+    rw [hf2] at h
+    simp at h
+    exact h
+  · rw [surjective_def]
+    intro y
+    use (f2 y)
+    rw [←comp_eval f2 f y, hf, id]
+  done
+
+
+
 
 -- The other way is harder in Lean, unless you know about the `choose`
 -- tactic. Given `f` and a proof that it's a bijection, how do you
@@ -56,4 +79,12 @@ example : (∃ g : Y → X, f ∘ g = id ∧ g ∘ f = id) → f.Bijective := by
 -- `g`, and the `choose` tactic does this for you.
 -- If `hfs` is a proof that `f` is surjective, try `choose g hg using hfs`.
 example : f.Bijective → ∃ g : Y → X, f ∘ g = id ∧ g ∘ f = id := by
-  sorry
+  choose hf_in g P
+  use g
+  constructor
+  · rw [injective_def] at hf_in
+    ext x
+    specialize P x
+    rw [←comp_eval g f] at P
+    exact P
+  ·

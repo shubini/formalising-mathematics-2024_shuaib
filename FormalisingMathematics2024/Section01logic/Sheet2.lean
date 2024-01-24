@@ -37,7 +37,7 @@ example : True → True := by
   done
 
 example : False → True := by
-  intro Q
+  intro _
   triv
   done
 
