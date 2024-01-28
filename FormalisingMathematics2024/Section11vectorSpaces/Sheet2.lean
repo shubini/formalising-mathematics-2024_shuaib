@@ -64,4 +64,11 @@ open FiniteDimensional -- now we can just write `finrank`.
 
 example (A B : Subspace k V) (hV : finrank k V = 9) (hA : finrank k A = 5) (hB : finrank k B = 5) :
     A ⊓ B ≠ ⊥ := by
-  sorry
+  intro h
+  have h2 := Submodule.finrank_sup_add_finrank_inf_eq A B
+  have h3 := Submodule.finrank_le (A ⊔ B)
+  rw [hV] at h3
+  rw [h, hA, hB, finrank_bot k V] at h2
+  norm_num at h2
+  rw [h2] at h3
+  linarith
