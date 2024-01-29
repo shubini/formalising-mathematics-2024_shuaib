@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author : Kevin Buzzard
 -/
 import Mathlib.Tactic
+import LeanCopilot
 
 /-!
 
@@ -100,8 +101,16 @@ example (φ ψ : V →ₗ[k] W) (h : ∀ i : I, φ (B i) = ψ (B i)) : φ = ψ :
   B.ext h
 
 -- That should be all you need to do this!
-example (f : I → W) : ∃! φ : V →ₗ[k] W, ∀ i, φ (B i) = f i :=
-  sorry
+example (f : I → W) : ∃! φ : V →ₗ[k] W, ∀ i, φ (B i) = f i := by
+  use B.constr k f
+  fconstructor
+  · apply B.constr_basis
+  · rintro φ hy
+    apply B.ext
+    intro i
+    specialize hy i
+    rw [hy]
+    rw [B.constr_basis k f i]
 
 -- Now say `C` is a basis of `W`, indexed by a type `J`
 variable (J : Type) (C : Basis J k W)
@@ -120,5 +129,5 @@ example : (V →ₗ[k] W) ≃ₗ[k] Matrix J I k :=
 -- check that this bijection does give what we expect.
 -- Right-click on `LinearMap.toMatrix` and then "go to definition" to find
 -- the API for `LinearMap.toMatrix`.
-example (φ : V →ₗ[k] W) (i : I) (j : J) : LinearMap.toMatrix B C φ j i = C.repr (φ (B i)) j :=
-  sorry
+example (φ : V →ₗ[k] W) (i : I) (j : J) : LinearMap.toMatrix B C φ j i = C.repr (φ (B i)) j := by
+  simp [LinearMap.toMatrix]
