@@ -61,7 +61,17 @@ example : a ≤ a := by
   rfl
 
 example (hab : a ≤ b) (hbc : b ≤ c) (hcd : c ≤ d) : a ≤ d := by
-  rw [le_antisymm hab hcd ]
+  have hac : a ≤ c := by
+    trans b
+    · exact hab
+    · exact hbc
+  trans c
+  · exact hac
+  · exact hcd
 
 example (hab : a ≤ b) (hbc : b ≤ c) (hca : c ≤ a) : a = b := by
-  exact le_antisymm hab  hca 
+  have hba : b ≤ a := by
+    trans c
+    · exact hbc
+    · exact hca
+  exact le_antisymm hab hba
