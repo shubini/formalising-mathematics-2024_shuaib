@@ -25,11 +25,12 @@ lemma rank_nullity_theorem {V₁ : Type} [AddCommGroup V₁] [Module k V₁] [Fi
   rw [←h2]
   exact Submodule.finrank_quotient_add_finrank (LinearMap.ker f)
 
-theorem finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim {n : ℕ} {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (hV: finrank k V = n) (hW: finrank k W = n) : V ≃ₗ[k] W := by
+theorem finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (hn: finrank k V = finrank k W) : V ≃ₗ[k] W := by
+  let n := finrank k V
   have B : Basis (Fin n) k V := by
-    exact FiniteDimensional.finBasisOfFinrankEq k V hV
+    exact FiniteDimensional.finBasisOfFinrankEq k V rfl
   have C : Basis (Fin n) k W := by
-    exact FiniteDimensional.finBasisOfFinrankEq k W hW
+    exact FiniteDimensional.finBasisOfFinrankEq k W (by rw [←hn])
 
   let φ : V →ₗ[k] W := B.constr k C
   let φ₂: W →ₗ[k] V := C.constr k B
@@ -48,13 +49,25 @@ theorem finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim {n : ℕ} 
   constructor
   · refine Function.leftInverse_iff_comp.mpr h2
   · exact congrFun h1
+  done
+
+theorem finite_vector_spaces_have_the_same_dim_if_they_are_isomorphic {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (h: V ≃ₗ[k] W): finrank k V = finrank k W := by
+  let m := finrank k V
+  let s := finrank k W
+
+  by_contra h2
+  have B : Basis (Fin m) k V := by
+    exact FiniteDimensional.finBasisOfFinrankEq k V rfl
+  have C: Basis (Fin s) k W := by
+    exact FiniteDimensional.finBasisOfFinrankEq k W rfl
+  -- cases' h with φ φ2 left right
+  -- simp [Function.leftInverse_iff_comp] at left
+  -- simp [Function.rightInverse_iff_comp] at right
+  let φ := LinearEquiv.bijective h
+  cases' φ with φ1 φ2
 
 
-
-
-
-
-
+  done
 /-
 
 theorem basisExistence
