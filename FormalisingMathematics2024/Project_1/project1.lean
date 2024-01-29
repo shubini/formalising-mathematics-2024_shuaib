@@ -158,3 +158,4 @@ theorem larger_span_set_than_basis_must_be_lin_dependent {k : Type} [Field k] {V
   rw [h3] at hnm
   exact lt_irrefl _  hnm
   done
+-/
