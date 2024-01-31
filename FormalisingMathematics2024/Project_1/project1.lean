@@ -63,16 +63,16 @@ theorem finite_vector_spaces_have_the_same_dim_if_they_are_isomorphic {k : Type}
   wlog hlt: m < s
   . cases' Ne.lt_or_lt h2 with h3 h3
     · contradiction
-    · specialize this k V
-      rw [Nat.not_lt] at hlt
-
-      exact lt_of_le_of_ne h3 (Ne.symm h2)
-
+    · specialize this k V h h2 (by change hlt)
+      exact this
 
   have B : Basis (Fin m) k V := by
     exact FiniteDimensional.finBasisOfFinrankEq k V rfl
   have C: Basis (Fin s) k W := by
     exact FiniteDimensional.finBasisOfFinrankEq k W rfl
+
+  have h4: Fin m ⊂ Fin s := by
+    rfl
   -- cases' h with φ φ2 left right
   -- simp [Function.leftInverse_iff_comp] at left
   -- simp [Function.rightInverse_iff_comp] at right
