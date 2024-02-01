@@ -16,16 +16,9 @@ lemma intersection_non_empty_if_sum_of_ranks_greater_than_dimension_of_ambient_s
   norm_num at h2
   rw [h2] at h3
   linarith
+  done
 
-lemma rank_nullity_theorem {V₁ : Type} [AddCommGroup V₁] [Module k V₁] [FiniteDimensional k V₁] (f : V →ₗ[k] V₁): FiniteDimensional.finrank k (LinearMap.range f) + FiniteDimensional.finrank k (LinearMap.ker f) = FiniteDimensional.finrank k V := by
-  have h: (V ⧸ LinearMap.ker f) ≃ₗ[k] ↥(LinearMap.range f) := by
-    exact f.quotKerEquivRange
-  have h2 : FiniteDimensional.finrank k (V ⧸ LinearMap.ker f) = FiniteDimensional.finrank k (LinearMap.range f):= by
-    exact LinearEquiv.finrank_eq h
-  rw [←h2]
-  exact Submodule.finrank_quotient_add_finrank (LinearMap.ker f)
-
-theorem finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (hn: finrank k V = finrank k W) : V ≃ₗ[k] W := by
+lemma finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (hn: finrank k V = finrank k W) : V ≃ₗ[k] W := by
   let n := finrank k V
   have B : Basis (Fin n) k V := by
     exact FiniteDimensional.finBasisOfFinrankEq k V rfl
@@ -51,48 +44,68 @@ theorem finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim {k : Type}
   · exact congrFun h1
   done
 
-example (m s : ℕ) : ¬m < s → s ≤ m := by
-  intro h
-  exact Nat.not_lt.mp h
-
-theorem finite_vector_spaces_have_the_same_dim_if_they_are_isomorphic {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (h: V ≃ₗ[k] W): finrank k V = finrank k W := by
-  let m := finrank k V
-  let s := finrank k W
-
-  by_contra h2
-  wlog hlt: m < s
-  . cases' Ne.lt_or_lt h2 with h3 h3
-    · contradiction
-    · specialize this k V h h2 (by change hlt)
-      exact this
-
-  have B : Basis (Fin m) k V := by
+lemma finite_vector_spaces_have_the_same_dim_if_they_are_isomorphic {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (φ: V ≃ₗ[k] W): finrank k V = finrank k W := by
+  let n := finrank k V
+  have B : Basis (Fin n) k V := by
     exact FiniteDimensional.finBasisOfFinrankEq k V rfl
-  have C: Basis (Fin s) k W := by
+  have C : Basis (Fin n) k W := by
+    exact B.map φ
+  have h2: finrank k W = n := by
+    rw [FiniteDimensional.finrank_eq_card_basis C]
+    exact Fintype.card_fin n
+  change finrank k W = finrank k V at h2
+  exact h2.symm
+  done
+
+theorem rank_nullity_theorem {V₁ : Type} [AddCommGroup V₁] [Module k V₁] [FiniteDimensional k V₁] (f : V →ₗ[k] V₁): FiniteDimensional.finrank k (LinearMap.range f) + FiniteDimensional.finrank k (LinearMap.ker f) = FiniteDimensional.finrank k V := by
+  have h: (V ⧸ LinearMap.ker f) ≃ₗ[k] ↥(LinearMap.range f) := by
+    exact f.quotKerEquivRange
+  have h2 : FiniteDimensional.finrank k (LinearMap.range f) = FiniteDimensional.finrank k (V ⧸ LinearMap.ker f):= by
+    exact (finite_vector_spaces_have_the_same_dim_if_they_are_isomorphic h).symm
+  rw [h2]
+  exact Submodule.finrank_quotient_add_finrank (LinearMap.ker f)
+  done
+
+lemma bases_of_fd_vector_space_are_same_size {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] [Fintype I] [Fintype J] (B : Basis I k V) (C : Basis J k V): Fintype.card I = Fintype.card J := by
+  let n := finrank k V
+  have hi : Fintype.card I = n := by
+    rw [←FiniteDimensional.finrank_eq_card_basis B]
+  have hj : Fintype.card J = n := by
+    rw [←FiniteDimensional.finrank_eq_card_basis C]
+  rw [hi, hj]
+
+
+
+theorem exists_a_subspace_directsum {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] (W : Subspace k V) : ∃(U: Subspace k V), Sum W U = V := by
+  let n := finrank k V
+  let m := finrank k W
+  have h: m ≤ n := by
+    exact Submodule.finrank_le W
+  have B: Basis (Fin n) k V := by
+    exact FiniteDimensional.finBasisOfFinrankEq k V rfl
+  have C: Basis (Fin m) k W := by
     exact FiniteDimensional.finBasisOfFinrankEq k W rfl
-
-  have h4: Fin m ⊂ Fin s := by
-    rfl
-  -- cases' h with φ φ2 left right
-  -- simp [Function.leftInverse_iff_comp] at left
-  -- simp [Function.rightInverse_iff_comp] at right
-  let φ := LinearEquiv.bijective h
-  cases' φ with φ1 φ2
-
+  rw [@Nat.le_iff_lt_or_eq] at h
+  cases' h with h h
+  swap
+  · use (⊥: Submodule k V)
+    have h1: V ≃ₗ[k] W := by exact finite_vector_spaces_are_isomorphic_if_they_have_the_same_dim (rw  h)
+    let q:=  Basis.extend (Basis.linearIndependent C)
 
   done
+
+
+
+
+
+
+
 /-
-
-theorem basisExistence
-
-theorem OrthonormalBasisExistence :=
-
-theorem subsetofOrthoBasisOrtho
-
-theorem rank_nullity {K : Type} {V: Type v} {V₁ : Type v} [DivisionRing K] [AddCommGroup V] [Module K V] [AddCommGroup V₁] [Module K V₁] (f : V →ₗ[K] V₁): Module.rank K (LinearMap.range f) + Module.rank K (LinearMap.ker f) = Module.rank K V := by
-  simpa using LinearMap.rank_range_add_rank_ker f
+theorem larger_set_than_basis_must_be_linearly_dependent {k : Type} [Field k] {V : Type} [AddCommGroup V] [Module k V][FiniteDimensional k V] {W : Type} [AddCommGroup W] [Module k W][FiniteDimensional k W] (B : Basis (Fin n) k V) (v : (Fin m) → V) (hnm : n < m) : ∃(v₁ v₂ : (Fin m)), v v_₁ :=
 
 
 
-  done
+
+
+
 -/
