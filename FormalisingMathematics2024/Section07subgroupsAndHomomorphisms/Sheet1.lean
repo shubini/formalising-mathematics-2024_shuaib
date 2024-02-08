@@ -44,18 +44,31 @@ example (ha : a ∈ H) (hb : b ∈ H) : a * b ∈ H :=
 -- Let's use these axioms to make more API for subgroups.
 -- First, see if you can put the axioms together to prove subgroups are closed under "division".
 example (ha : a ∈ H) (hb : b ∈ H) : a * b⁻¹ ∈ H := by
-  sorry
+  exact mul_mem ha (inv_mem hb)
 
 -- Now try these. You might want to remind yourself of the API for groups as explained
 -- in an earlier section, or make use of the `group` tactic.
 -- This lemma is called `Subgroup.inv_mem_iff` but try proving it yourself
+example : a⁻¹⁻¹  = a := by
+  group
 example : a⁻¹ ∈ H ↔ a ∈ H := by
-  sorry
+  constructor
+  · intro h
+    have h2 := inv_mem h
+    rw [show a = a⁻¹⁻¹ by group]
+    exact h2
+  · intro h
+    exact inv_mem h
 
 -- this is `mul_mem_cancel_left` but see if you can do it from the axioms of subgroups.
 -- Again feel free to use the `group` tactic.
 example (ha : a ∈ H) : a * b ∈ H ↔ b ∈ H := by
-  sorry
+  constructor
+  · intro h
+    have haInv := inv_mem ha
+    have hainvab := mul_mem haInv h
+    rw [show b = a⁻¹ * (a * b) by group]
+    exact hainvab
 
 /-
 
@@ -107,16 +120,24 @@ variable {G H} {x : G}
 variable {y z : G}
 
 theorem conjugate.one_mem : (1 : G) ∈ {a : G | ∃ h, h ∈ H ∧ a = x * h * x⁻¹} := by
-  sorry
+  use 1
+  constructor
+  · exact H.one_mem
+  · group
 
 theorem conjugate.inv_mem (hy : y ∈ {a : G | ∃ h, h ∈ H ∧ a = x * h * x⁻¹}) :
     y⁻¹ ∈ {a : G | ∃ h, h ∈ H ∧ a = x * h * x⁻¹} := by
-  sorry
+  rcases hy with ⟨g, hg, rfl⟩
+  use g⁻¹, inv_mem hg
+  group
 
 theorem conjugate.mul_mem (hy : y ∈ {a : G | ∃ h, h ∈ H ∧ a = x * h * x⁻¹})
     (hz : z ∈ {a : G | ∃ h, h ∈ H ∧ a = x * h * x⁻¹}) :
     y * z ∈ {a : G | ∃ h, h ∈ H ∧ a = x * h * x⁻¹} := by
-  sorry
+  rcases hy with ⟨g, hg, rfl⟩
+  rcases hz with ⟨g₂, hg₂, rfl⟩
+  use g * g₂, mul_mem hg hg₂
+  group
 
 -- Now here's the way to put everything together:
 def conjugate (H : Subgroup G) (x : G) : Subgroup G
