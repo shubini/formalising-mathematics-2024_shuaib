@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import LeanCopilot
 /-
 TO DO
 
@@ -60,6 +61,17 @@ def centralizer (H : Subgroup G) : Subgroup G
   inv_mem' := centralizer.inv_mem
   mul_mem' := centralizer.mul_mem
 
-theorem cent_of_normal_is_normal (H : Subgroup G) : H.Normal → (centralizer H).Normal := by
-  rintro h
-  sorry
+theorem cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: ∀ n, n ∈
+    (centralizer H) → ∀ g : G, g * n * g⁻¹ ∈ (centralizer H):= by
+  intro n hn g
+  have H_norm := Subgroup.Normal.conj_mem H_norm
+
+  have h2: ∀ h ∈ H, n * h * n⁻¹ = h := by
+    exact fun h a => hn h a
+  have h3: ∀ h ∈ H, n = h * n * h⁻¹ := by
+    intro h hh
+    specialize h2 h hh
+    nth_rw 1 [←h2]
+    group
+
+  done
