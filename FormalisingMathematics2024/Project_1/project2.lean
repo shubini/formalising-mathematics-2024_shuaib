@@ -63,15 +63,29 @@ def centralizer (H : Subgroup G) : Subgroup G
 
 theorem cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: ∀ n, n ∈
     (centralizer H) → ∀ g : G, g * n * g⁻¹ ∈ (centralizer H):= by
-  intro n hn g
-  have H_norm := Subgroup.Normal.conj_mem H_norm
-
-  have h2: ∀ h ∈ H, n * h * n⁻¹ = h := by
+  rintro n hn g h hh
+  have H_norm_1 := Subgroup.Normal.conj_mem H_norm
+  have h2: ∀ h ∈ H, n * h * n⁻¹ = h := by -- del
     exact fun h a => hn h a
-  have h3: ∀ h ∈ H, n = h * n * h⁻¹ := by
-    intro h hh
-    specialize h2 h hh
-    nth_rw 1 [←h2]
-    group
-
-  done
+  specialize h2 h hh
+  specialize H_norm_1 h hh g
+  let h₂ := g⁻¹ * h* g
+  simp
+  rw [mul_assoc, mul_assoc]
+  have assoc_helper : (g⁻¹ * (h * (g * (n⁻¹ * g⁻¹)))) = (g⁻¹ * h * g) * (n⁻¹ * g⁻¹) := by group
+  rw [assoc_helper]
+  change g * n * (h₂ * (n⁻¹ * g⁻¹)) = h
+  have assoc_helper : g * n * (h₂ * (n⁻¹ * g⁻¹)) = g * (n * h₂ * n⁻¹) * g⁻¹ := by group
+  rw [assoc_helper]
+  have h2h : h₂ ∈ H := by
+    change (g⁻¹ * h * g) ∈ H
+    have a: g⁻¹ * h * g⁻¹⁻¹ ∈ H := by
+      exact Subgroup.Normal.conj_mem H_norm h hh g⁻¹
+    have b: (g⁻¹ * h * g) = (g⁻¹ * h * g⁻¹⁻¹) := by
+      group
+    rw [b]
+    exact a
+  specialize hn h₂ h2h
+  rw [hn]
+  change g * (g⁻¹ * h * g) * g⁻¹ = h
+  group
