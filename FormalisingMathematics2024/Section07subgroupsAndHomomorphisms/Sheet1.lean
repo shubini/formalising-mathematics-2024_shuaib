@@ -177,15 +177,52 @@ theorem mem_conjugate_iff : a ∈ conjugate H x ↔ ∃ h, h ∈ H ∧ a = x * h
   rfl
 
 theorem conjugate_mono (H K : Subgroup G) (h : H ≤ K) : conjugate H x ≤ conjugate K x := by
-  sorry
+  rintro g ⟨t, ht, rfl⟩
+  exact ⟨t, h ht, rfl⟩
 
 theorem conjugate_bot : conjugate ⊥ x = ⊥ := by
-  sorry
+  ext h
+  rw [mem_conjugate_iff]
+  rw [Subgroup.mem_bot]
+  constructor
+  · rintro ⟨h1, ⟨l, r⟩⟩
+    rw [Subgroup.mem_bot] at l
+    rw [l] at r
+    group at r
+    exact r
+  · intro h1
+    rw [h1]
+    use 1
+    constructor
+    · rfl
+    · group
 
 theorem conjugate_top : conjugate ⊤ x = ⊤ := by
-  sorry
+  ext t
+  rw [mem_conjugate_iff]
+  constructor
+  · rintro ⟨g, ⟨_, _⟩⟩
+    exact Subgroup.mem_top (x⁻¹ * t * x)
+  · intro _
+    use (x⁻¹ * t * x)
+    constructor
+    · exact Subgroup.mem_top (x⁻¹ * t * x)
+    · group
 
 theorem conjugate_eq_of_abelian (habelian : ∀ a b : G, a * b = b * a) : conjugate H x = H := by
-  sorry
+  ext x2
+  rw [mem_conjugate_iff]
+  constructor
+  · rintro ⟨g, hg, hs⟩
+    specialize habelian x g
+    rw [habelian] at hs
+    group at hs
+    rw [hs]
+    exact hg
+  · rintro hx2
+    use x2, hx2
+    specialize habelian x x2
+    rw [habelian]
+    group
 
 end Section7sheet1

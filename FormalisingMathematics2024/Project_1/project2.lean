@@ -45,11 +45,13 @@ theorem centralizer.mul_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = 
   intro h hh
   specialize hy h hh
   specialize hz h hh
-  group at *
-  have hyz : y * z * h * z * (Ring.toNeg 1) = y * (z * h * z ^ (Ring.toNeg 1)) := by
+  rw [mul_inv_eq_inv_mul_inv]
+  rw [←mul_assoc]
+  have hyz : y * z * h * z⁻¹ = y * (z * h * z⁻¹) := by
     group
   rw [hyz]
   rw [hz]
+  rw [hy]
 
 def centralizer (H : Subgroup G) : Subgroup G
     where
@@ -57,3 +59,7 @@ def centralizer (H : Subgroup G) : Subgroup G
   one_mem' := centralizer.one_mem
   inv_mem' := centralizer.inv_mem
   mul_mem' := centralizer.mul_mem
+
+theorem cent_of_normal_is_normal (H : Subgroup G) : H.Normal → (centralizer H).Normal := by
+  rintro h
+  sorry
