@@ -76,3 +76,8 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
   exact hh
 
 -- PS1
+-- theorem autgroupofZ [G : AddGroup ℤ]: ∃φ, (φ : ((Group (G →* G)) →* (ℤ⧸2*ℤ))):= by sorry
+
+
+--q3
+theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
