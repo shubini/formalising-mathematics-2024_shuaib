@@ -1,5 +1,8 @@
 import Mathlib.Tactic
 import LeanCopilot
+import Mathlib.CategoryTheory
+open AddGroup
+open QuotientGroup
 /-
 TO DO
 
@@ -76,8 +79,17 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
   exact hh
 
 -- PS1
--- theorem autgroupofZ [G : AddGroup ℤ]: ∃φ, (φ : ((Group (G →* G)) →* (ℤ⧸2*ℤ))):= by sorry
+theorem autgroupofZ [G : AddGroup ℤ] [AutZ : CategoryTheory.Aut.instGroupAut G] (H : Subgroup G) (c2 : (AddGroup.IsAddCyclic H) ∧ (Fintype.card H = 2)):
+    ∃φ, (φ : AutZ →* H):= by
+
+  done
 
 
 --q3
 theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
+  constructor
+  intro h hh g
+  cases' em (g ∈ H) with h2 h2
+  · exact mul_mem (mul_mem h2 hh) (inv_mem h2)
+  · let h₂ := g * h * g⁻¹
+    sorry
