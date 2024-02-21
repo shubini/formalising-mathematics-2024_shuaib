@@ -48,8 +48,7 @@ theorem centralizer.mul_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = 
   specialize hy h hh
   specialize hz h hh
   rw [mul_inv_rev, ←mul_assoc]
-  have hyz : y * z * h * z⁻¹ = y * (z * h * z⁻¹) := by
-    group
+  have hyz : y * z * h * z⁻¹ = y * (z * h * z⁻¹) := by group
   rw [hyz, hz, hy]
 
 def centralizer (H : Subgroup G) : Subgroup G
@@ -59,8 +58,8 @@ def centralizer (H : Subgroup G) : Subgroup G
   inv_mem' := centralizer.inv_mem
   mul_mem' := centralizer.mul_mem
 
-lemma cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: ∀ n, n ∈
-    (centralizer H) → ∀ g : G, g * n * g⁻¹ ∈ (centralizer H):= by
+lemma cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: (centralizer H).Normal:= by
+  constructor
   intro n hn g h hh
   rw [show g * n * g⁻¹ * h * (g * n * g⁻¹)⁻¹ = g * (n * (g⁻¹ * h * g) * n⁻¹) * g⁻¹ by group]
   have h2 : (g⁻¹ * h * g) ∈ H := by
