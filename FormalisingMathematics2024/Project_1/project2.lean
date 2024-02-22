@@ -84,13 +84,17 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
   done
 
 -- PS1
-
-theorem autgroupofZ [G : AddGroup ℤ] [AutZ : G ≃+ G] (H : Subgroup G) (c2 : (AddGroup.IsAddCyclic H) ∧ (Fintype.card H = 2)):
+/-
+theorem autgroupofZ [Z : AddGroup ℤ] {AutZ : Group (AddGroup ℤ ≃+ AddGroup ℤ)} (H : Subgroup G)
+      (c2 : (AddGroup.IsAddCyclic H) ∧ (Nat.card H = 2)):
     ∃φ, (φ : AutZ →* H):= by
 
   done
-
+-/
 --q3
+lemma card2sethastwoelements {X: Type} (x y z : X) (h: Nat.card X = 2) (hxy: x≠y): z = x ∨ z = y
+    := by
+
 
 
 open scoped Pointwise
@@ -110,9 +114,9 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
         sorry
       have hxy : ∀ t : (G ⧸ H), x = t ∨ t = y := by
         sorry
-      have hygH : y = g • (H: Set G) := by
+      have hygH : y = g • (H : Set G) := by
         sorry
-      have hyHg : y = op g • (H: Set G) := by
+      have hyHg : y = op g • (H : Set G) := by
         sorry
       rw [hygH] at hyHg
       exact hyHg
