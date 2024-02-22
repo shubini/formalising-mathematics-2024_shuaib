@@ -85,19 +85,36 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
 
 -- PS1
 
-theorem autgroupofZ [G : AddGroup ℤ] [AutZ : Aut G] (H : Subgroup G) (c2 : (AddGroup.IsAddCyclic H) ∧ (Fintype.card H = 2)):
+theorem autgroupofZ [G : AddGroup ℤ] [AutZ : G ≃+ G] (H : Subgroup G) (c2 : (AddGroup.IsAddCyclic H) ∧ (Fintype.card H = 2)):
     ∃φ, (φ : AutZ →* H):= by
 
   done
 
 --q3
+
+
 open scoped Pointwise
 theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
-  change Nat.card (G ⧸ H) = 2 at ind
   have h2: ∀g : G, g • (H : Set G) = op g • H := by
     intro g
     cases' em (g ∈ H) with hginH hgninH
     · rw [leftCoset_mem_leftCoset H hginH, rightCoset_mem_rightCoset H hginH]
-    · sorry
+    · let π := (QuotientGroup.mk : G → G ⧸ H)
+      let x := π (1:G)
+      have hHT : H ≠ ⊤ := by
+        intro hInd
+        rw [←Subgroup.index_eq_one, ind] at hInd
+        contradiction
+      let y := π g
+      have hxneqy : x ≠ y := by
+        sorry
+      have hxy : ∀ t : (G ⧸ H), x = t ∨ t = y := by
+        sorry
+      have hygH : y = g • (H: Set G) := by
+        sorry
+      have hyHg : y = op g • (H: Set G) := by
+        sorry
+      rw [hygH] at hyHg
+      exact hyHg
   exact normal_of_eq_cosets H h2
   done
