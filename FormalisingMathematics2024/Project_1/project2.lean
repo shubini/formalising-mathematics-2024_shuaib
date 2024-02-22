@@ -1,8 +1,9 @@
 import Mathlib.Tactic
 import LeanCopilot
-import Mathlib.CategoryTheory
 open AddGroup
 open QuotientGroup
+open CategoryTheory
+open MulOpposite
 /-
 TO DO
 
@@ -32,6 +33,7 @@ variable {y z : G}
 theorem centralizer.one_mem : (1 : G) ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
   rintro h _
   group
+  done
 
 theorem centralizer.inv_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}) :
     y⁻¹ ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
@@ -40,6 +42,7 @@ theorem centralizer.inv_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = 
   rw [hy.symm]
   group at *
   exact hy.symm
+  done
 
 theorem centralizer.mul_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h})
     (hz : z ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}) :
@@ -50,6 +53,7 @@ theorem centralizer.mul_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = 
   rw [mul_inv_rev, ←mul_assoc]
   have hyz : y * z * h * z⁻¹ = y * (z * h * z⁻¹) := by group
   rw [hyz, hz, hy]
+  done
 
 def centralizer (H : Subgroup G) : Subgroup G
     where
@@ -68,6 +72,7 @@ lemma cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: (centralize
   specialize hn (g⁻¹ * h * g) h2
   rw [hn]
   group
+  done
 
 def center := centralizer (⊤ : Subgroup G)
 theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
@@ -76,19 +81,23 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
   specialize hSub hh g (Subgroup.mem_top g)
   rw [←eq_mul_of_mul_inv_eq hSub, mul_assoc, mul_inv_self g, mul_one]
   exact hh
+  done
 
 -- PS1
-theorem autgroupofZ [G : AddGroup ℤ] [AutZ : CategoryTheory.Aut.instGroupAut G] (H : Subgroup G) (c2 : (AddGroup.IsAddCyclic H) ∧ (Fintype.card H = 2)):
+
+theorem autgroupofZ [G : AddGroup ℤ] [AutZ : Aut G] (H : Subgroup G) (c2 : (AddGroup.IsAddCyclic H) ∧ (Fintype.card H = 2)):
     ∃φ, (φ : AutZ →* H):= by
 
   done
 
-
 --q3
+open scoped Pointwise
 theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
-  constructor
-  intro h hh g
-  cases' em (g ∈ H) with h2 h2
-  · exact mul_mem (mul_mem h2 hh) (inv_mem h2)
-  · let h₂ := g * h * g⁻¹
-    sorry
+  change Nat.card (G ⧸ H) = 2 at ind
+  have h2: ∀g : G, g • (H : Set G) = op g • H := by
+    intro g
+    cases' em (g ∈ H) with hginH hgninH
+    · rw [leftCoset_mem_leftCoset H hginH, rightCoset_mem_rightCoset H hginH]
+    · sorry
+  exact normal_of_eq_cosets H h2
+  done
