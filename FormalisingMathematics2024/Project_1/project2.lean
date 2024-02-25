@@ -1,9 +1,11 @@
 import Mathlib.Tactic
 import LeanCopilot
+import Mathlib.SetTheory.Cardinal.Finite
 open AddGroup
 open QuotientGroup
 open CategoryTheory
 open MulOpposite
+
 /-
 TO DO
 
@@ -94,7 +96,24 @@ theorem autgroupofZ [Z : AddGroup ℤ] {AutZ : Group (AddGroup ℤ ≃+ AddGroup
 --q3
 lemma card2sethastwoelements {X: Type} (x y z : X) (h: Nat.card X = 2) (hxy: x≠y): z = x ∨ z = y
     := by
-
+  have h2 := (Nat.card_eq_two_iff' x).mp h
+  have h3 := (Nat.card_eq_two_iff' y).mp h
+  obtain ⟨y_, ⟨_, h2_2⟩⟩ := h2
+  obtain ⟨x_, ⟨_, h3_2⟩⟩ := h3
+  have hx: x = x_ := by
+    specialize h3_2 x hxy
+    exact h3_2
+  have hy: y = y_ := by
+    specialize h2_2 y hxy.symm
+    exact h2_2
+  rw [←hy] at h2_2
+  rw [←hx] at h3_2
+  cases' eq_or_ne z x with hxz hxz
+  · left; exact hxz
+  · right
+    specialize h2_2 z hxz
+    exact h2_2
+  done
 
 
 open scoped Pointwise
@@ -111,12 +130,14 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
         contradiction
       let y := π g
       have hxneqy : x ≠ y := by
+        by_contra hxeqy
+
+      have hxy : ∀ t : (G ⧸ H), t = x ∨ t = y := by
+        intro t
+        exact card2sethastwoelements x y t ind hxneqy
+      have hygH : y • (H : Set G) = g • (H : Set G) := by
         sorry
-      have hxy : ∀ t : (G ⧸ H), x = t ∨ t = y := by
-        sorry
-      have hygH : y = g • (H : Set G) := by
-        sorry
-      have hyHg : y = op g • (H : Set G) := by
+      have hyHg : y • (H : Set G) = op g • (H : Set G) := by
         sorry
       rw [hygH] at hyHg
       exact hyHg
