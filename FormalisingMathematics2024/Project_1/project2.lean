@@ -94,19 +94,19 @@ theorem autgroupofZ [Z : AddGroup ℤ] {AutZ : Group (AddGroup ℤ ≃+ AddGroup
   done
 -/
 --q3
-lemma card2sethastwoelements {X: Type} (x y z : X) (h: Nat.card X = 2) (hxy: x≠y): z = x ∨ z = y
+lemma elOfCard2eqsEitherEl {X: Type} (x y z : X) (h: Nat.card X = 2) (hxy: x≠y): z = x ∨ z = y
     := by
-  have h2 := (Nat.card_eq_two_iff' x).mp h
-  obtain ⟨y_, ⟨_, h2_2⟩⟩ := h2
+  obtain ⟨y_, ⟨_, h2⟩⟩ := (Nat.card_eq_two_iff' x).mp h
   have hy: y = y_ := by
-    specialize h2_2 y hxy.symm
-    exact h2_2
-  rw [←hy] at h2_2
+    specialize h2 y hxy.symm
+    exact h2
+  rw [←hy] at h2
   cases' eq_or_ne z x with hxz hxz
-  · left; exact hxz
+  · left
+    exact hxz
   · right
-    specialize h2_2 z hxz
-    exact h2_2
+    specialize h2 z hxz
+    exact h2
   done
 
 open scoped Pointwise
@@ -125,13 +125,17 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
       have hxneqy : x ≠ y := by
         by_contra hxeqy
         apply hgninH
-        exact?
+        have hginv:= QuotientGroup.eq'.mp hxeqy.symm
+        rw [mul_one] at hginv
+        rw [show g = g⁻¹⁻¹ by group]
+        exact inv_mem hginv
       have hxy : ∀ t : (G ⧸ H), t = x ∨ t = y := by
         intro t
-        exact card2sethastwoelements x y t ind hxneqy
-      have hygH : y • (H : Set G) = g • (H : Set G) := by
+        exact elOfCard2eqsEitherEl x y t ind hxneqy
+      have hygH : y = g • (H : Set G) := by
+        --eq_class_eq_leftCoset
         sorry
-      have hyHg : y • (H : Set G) = op g • (H : Set G) := by
+      have hyHg : op y • (H : Set G) = op g • (H : Set G) := by
         sorry
       rw [hygH] at hyHg
       exact hyHg
