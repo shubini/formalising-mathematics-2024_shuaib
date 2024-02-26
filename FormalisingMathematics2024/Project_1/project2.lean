@@ -117,10 +117,6 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
     · rw [leftCoset_mem_leftCoset H hginH, rightCoset_mem_rightCoset H hginH]
     · let π := (QuotientGroup.mk : G → G ⧸ H)
       let x := π (1:G)
-      have hHT : H ≠ ⊤ := by
-        intro hInd
-        rw [←Subgroup.index_eq_one, ind] at hInd
-        contradiction
       let y := π g
       have hxneqy : x ≠ y := by
         by_contra hxeqy
@@ -136,6 +132,16 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
       have hyHg : {(t:G) | ↑t = y} = op g • (H : Set G) := by
         ext g₂
         change ↑g₂ = y ↔ g₂ ∈ op g • (H : Set G)
+
+        have hy2: ↑(g⁻¹) = y := by
+            cases' hxy ↑(g⁻¹) with l r
+            · rw [QuotientGroup.eq'] at l
+              group at l
+              by_contra
+              apply hgninH
+              exact l
+            · exact r
+
         constructor
         · intro hg2y
           have hy1: ↑(g₂⁻¹) = y := by
@@ -149,14 +155,6 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
               group at hg
               exact hg
             · exact r
-          have hy2: ↑(g⁻¹) = y := by
-            cases' hxy ↑(g⁻¹) with l r
-            · rw [QuotientGroup.eq'] at l
-              group at l
-              by_contra
-              apply hgninH
-              exact l
-            · exact r
           rw [←hy2, QuotientGroup.eq', show g₂⁻¹⁻¹ = g₂ by group] at hy1
           exact (mem_rightCoset_iff g).mpr hy1
         · intro hg₂Hg
@@ -164,7 +162,20 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
           have h : g₂⁻¹⁻¹ * g⁻¹ ∈ H := by
             group at *
             exact hg₂Hg
-          have h6:= QuotientGroup.eq'.mpr h
+          have h2:= QuotientGroup.eq'.mpr h
+          rw [hy2] at h2
+          have hy1: ↑(g₂) = y := by
+            cases' hxy ↑(g₂) with l r
+            · rw [QuotientGroup.eq'] at l
+              group at l
+              by_contra
+              apply hgninH
+              rw [QuotientGroup.eq'] at h2
+              have hg := mul_mem l h2
+              group at hg
+              exact hg
+            · exact r
+          exact hy1
       rw [hygH] at hyHg
       exact hyHg
   exact normal_of_eq_cosets H h2
