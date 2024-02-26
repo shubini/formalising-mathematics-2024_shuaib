@@ -109,7 +109,6 @@ lemma card2sethastwoelements {X: Type} (x y z : X) (h: Nat.card X = 2) (hxy: x�
     exact h2_2
   done
 
-
 open scoped Pointwise
 theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
   have h2: ∀g : G, g • (H : Set G) = op g • H := by
@@ -125,7 +124,8 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
       let y := π g
       have hxneqy : x ≠ y := by
         by_contra hxeqy
-
+        apply hgninH
+        exact?
       have hxy : ∀ t : (G ⧸ H), t = x ∨ t = y := by
         intro t
         exact card2sethastwoelements x y t ind hxneqy
