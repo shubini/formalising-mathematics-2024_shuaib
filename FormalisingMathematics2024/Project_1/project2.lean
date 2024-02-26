@@ -125,19 +125,49 @@ theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 
       have hxneqy : x ≠ y := by
         by_contra hxeqy
         apply hgninH
-        have hginv:= QuotientGroup.eq'.mp hxeqy.symm
-        rw [mul_one] at hginv
-        rw [show g = g⁻¹⁻¹ by group]
-        exact inv_mem hginv
+        have hg:= QuotientGroup.eq'.mp hxeqy
+        group at hg
+        exact hg
       have hxy : ∀ t : (G ⧸ H), t = x ∨ t = y := by
         intro t
         exact elOfCard2eqsEitherEl x y t ind hxneqy
-      have hygH : y = g • (H : Set G) := by
-        --eq_class_eq_leftCoset
-        sorry
-      have hyHg : op y • (H : Set G) = op g • (H : Set G) := by
-        sorry
+      have hygH := eq_class_eq_leftCoset H g
+
+      have hyHg : {(t:G) | ↑t = y} = op g • (H : Set G) := by
+        ext g₂
+        change ↑g₂ = y ↔ g₂ ∈ op g • (H : Set G)
+        constructor
+        · intro hg2y
+          have hy1: ↑(g₂⁻¹) = y := by
+            cases' hxy ↑(g₂⁻¹) with l r
+            · rw [QuotientGroup.eq'] at l
+              group at l
+              by_contra
+              apply hgninH
+              rw [QuotientGroup.eq'] at hg2y
+              have hg := mul_mem l hg2y
+              group at hg
+              exact hg
+            · exact r
+          have hy2: ↑(g⁻¹) = y := by
+            cases' hxy ↑(g⁻¹) with l r
+            · rw [QuotientGroup.eq'] at l
+              group at l
+              by_contra
+              apply hgninH
+              exact l
+            · exact r
+          rw [←hy2, QuotientGroup.eq', show g₂⁻¹⁻¹ = g₂ by group] at hy1
+          exact (mem_rightCoset_iff g).mpr hy1
+        · intro hg₂Hg
+          rw [(mem_rightCoset_iff g)] at hg₂Hg
+          have h : g₂⁻¹⁻¹ * g⁻¹ ∈ H := by
+            group at *
+            exact hg₂Hg
+          have h6:= QuotientGroup.eq'.mpr h
       rw [hygH] at hyHg
       exact hyHg
   exact normal_of_eq_cosets H h2
   done
+
+#lint
