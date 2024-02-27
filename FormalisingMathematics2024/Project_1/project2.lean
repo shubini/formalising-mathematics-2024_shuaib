@@ -13,7 +13,7 @@ GROUPS AND RINGS PROBLEM SHEET 1
 
 Q1
 Q2A
-Q3
+Q3 -- done
 Q5
 Q6
 Q7
@@ -64,7 +64,7 @@ def centralizer (H : Subgroup G) : Subgroup G
   inv_mem' := centralizer.inv_mem
   mul_mem' := centralizer.mul_mem
 
-lemma cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: (centralizer H).Normal:= by
+lemma cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal): (centralizer H).Normal:= by
   constructor
   intro n hn g h hh
   rw [show g * n * g⁻¹ * h * (g * n * g⁻¹)⁻¹ = g * (n * (g⁻¹ * h * g) * n⁻¹) * g⁻¹ by group]
@@ -77,8 +77,8 @@ lemma cent_of_normal_is_normal (H : Subgroup G) [H_norm : H.Normal]: (centralize
   done
 
 def center := centralizer (⊤ : Subgroup G)
-theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
-    H → ∀ g : G, g * n * g⁻¹ ∈ H:= by
+theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:= by
+  refine' ⟨?_⟩
   intro h hh g
   specialize hSub hh g (Subgroup.mem_top g)
   rw [←eq_mul_of_mul_inv_eq hSub, mul_assoc, mul_inv_self g, mul_one]
@@ -86,99 +86,90 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  ∀ n, n ∈
   done
 
 -- PS1
-/-
-theorem autgroupofZ [Z : AddGroup ℤ] {AutZ : Group (AddGroup ℤ ≃+ AddGroup ℤ)} (H : Subgroup G)
-      (c2 : (AddGroup.IsAddCyclic H) ∧ (Nat.card H = 2)):
-    ∃φ, (φ : AutZ →* H):= by
+/- def Z := AddGroup ℤ
+def AutZ := Group ({f | f  : ℤ →* ℤ })
 
+theorem setautgroupofZsize2 [Z : AddGroup ℤ] : Nat.card AutZ = 2:= by
+  have AutZnonempty : Nonempty AutZ := by exact Set.instNonemptyRange fun y => y
+  cases' AutZnonempty with el
+  rw [Nat.card_eq_two_iff' el]
+  have hid : (id: ℤ →* ℤ) : AutZ
+  def id2 : ℤ ≃+ ℤ := fun z ↦ z
   done
 -/
 --q3
-lemma elOfCard2eqsEitherEl {X: Type} (x y z : X) (h: Nat.card X = 2) (hxy: x≠y): z = x ∨ z = y
-    := by
+lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
+    (hxy: x≠y): ∀ z : X, z = x ∨ z = y := by
+  intro z
   obtain ⟨y_, ⟨_, h2⟩⟩ := (Nat.card_eq_two_iff' x).mp h
-  have hy: y = y_ := by
-    specialize h2 y hxy.symm
-    exact h2
+  have hy: y = y_ := h2 y hxy.symm
   rw [←hy] at h2
   cases' eq_or_ne z x with hxz hxz
   · left
     exact hxz
   · right
-    specialize h2 z hxz
-    exact h2
+    exact h2 z hxz
   done
 
+lemma mk_g_nin_H_neq_mk_1 [Group G] {H: Subgroup G} {g : G} (hg :g ∉ H):
+    (g : G ⧸ H) ≠ ↑(1 : G) := by
+  by_contra h
+  rw [QuotientGroup.eq'] at h
+  apply hg
+  rw [mul_one] at h
+  let h := inv_mem h
+  group at h
+  exact h
+
+lemma mk_g_eq_mk_g_inv [Group G] {H: Subgroup G} (g : G) (ind: Subgroup.index H = 2):
+    (g : G ⧸ H) = ↑(g⁻¹) := by
+  cases' em (g ∈ H) with hg hg
+  · rw [QuotientGroup.eq']
+    exact mul_mem (inv_mem hg) (inv_mem hg)
+  · have hxy := el_of_card_2_eqs_either_el (g : G ⧸ H) ↑(1 : G) ind (mk_g_nin_H_neq_mk_1 hg)
+    cases' hxy ↑g⁻¹ with l r
+    · exact l.symm
+    · rw [QuotientGroup.eq'] at r
+      group at r
+      by_contra
+      apply hg
+      exact r
+
 open scoped Pointwise
-theorem index2subgroupNormal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
+theorem ind_2_subgroup_normal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
   have h2: ∀g : G, g • (H : Set G) = op g • H := by
     intro g
     cases' em (g ∈ H) with hginH hgninH
     · rw [leftCoset_mem_leftCoset H hginH, rightCoset_mem_rightCoset H hginH]
-    · let π := (QuotientGroup.mk : G → G ⧸ H)
-      let x := π (1:G)
-      let y := π g
-      have hxneqy : x ≠ y := by
-        by_contra hxeqy
-        apply hgninH
-        have hg:= QuotientGroup.eq'.mp hxeqy
-        group at hg
-        exact hg
-      have hxy : ∀ t : (G ⧸ H), t = x ∨ t = y := by
-        intro t
-        exact elOfCard2eqsEitherEl x y t ind hxneqy
-      have hygH := eq_class_eq_leftCoset H g
-
-      have hyHg : {(t:G) | ↑t = y} = op g • (H : Set G) := by
+    · have hygH := eq_class_eq_leftCoset H g
+      have hyHg : {(t:G) | ↑t = (g: G ⧸ H)} = op g • (H : Set G) := by
         ext g₂
-        change ↑g₂ = y ↔ g₂ ∈ op g • (H : Set G)
-
-        have hy2: ↑(g⁻¹) = y := by
-            cases' hxy ↑(g⁻¹) with l r
-            · rw [QuotientGroup.eq'] at l
-              group at l
-              by_contra
-              apply hgninH
-              exact l
-            · exact r
-
+        change ↑g₂ = (g: G ⧸ H) ↔ g₂ ∈ op g • (H : Set G)
+        have hy2 := (mk_g_eq_mk_g_inv g ind).symm
         constructor
         · intro hg2y
-          have hy1: ↑(g₂⁻¹) = y := by
-            cases' hxy ↑(g₂⁻¹) with l r
-            · rw [QuotientGroup.eq'] at l
-              group at l
-              by_contra
-              apply hgninH
-              rw [QuotientGroup.eq'] at hg2y
-              have hg := mul_mem l hg2y
-              group at hg
-              exact hg
-            · exact r
+          have hy1: ↑(g₂⁻¹) = (g : G ⧸ H) := by
+            rw [←mk_g_eq_mk_g_inv g₂ ind]
+            exact hg2y
           rw [←hy2, QuotientGroup.eq', show g₂⁻¹⁻¹ = g₂ by group] at hy1
           exact (mem_rightCoset_iff g).mpr hy1
         · intro hg₂Hg
-          rw [(mem_rightCoset_iff g)] at hg₂Hg
-          have h : g₂⁻¹⁻¹ * g⁻¹ ∈ H := by
-            group at *
-            exact hg₂Hg
-          have h2:= QuotientGroup.eq'.mpr h
-          rw [hy2] at h2
-          have hy1: ↑(g₂) = y := by
-            cases' hxy ↑(g₂) with l r
-            · rw [QuotientGroup.eq'] at l
-              group at l
-              by_contra
-              apply hgninH
-              rw [QuotientGroup.eq'] at h2
-              have hg := mul_mem l h2
-              group at hg
-              exact hg
-            · exact r
-          exact hy1
+          rw [(mem_rightCoset_iff g), show g₂= g₂⁻¹⁻¹ by group] at hg₂Hg
+          have h2:= QuotientGroup.eq'.mpr hg₂Hg
+          rw [hy2, ←mk_g_eq_mk_g_inv g₂ ind] at h2
+          exact h2
       rw [hygH] at hyHg
       exact hyHg
   exact normal_of_eq_cosets H h2
   done
+
+lemma center_is_normal [Group G]: (centralizer (⊤ : Subgroup G)).Normal:= by
+  have h : (⊤ : Subgroup G).Normal :=
+    by exact Subgroup.normal_of_characteristic ⊤
+  exact cent_of_normal_is_normal ⊤ h
+  done
+
+theorem G_quot_center_cylic_imp_G_abel [Group G] (h: Subgroup.isCyclic (QuotientGroup.Quotient.group (centralizer (⊤ : Subgroup G)) (cent_of_normal_is_normal ⊤ h))) : ∀ a b : G, a * b = b * a := by
+  intro a b
 
 #lint
