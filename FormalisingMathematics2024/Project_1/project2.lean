@@ -6,24 +6,20 @@ open QuotientGroup
 open CategoryTheory
 open MulOpposite
 
-/-
-TO DO
+/-!
+# Project 2
 
-GROUPS AND RINGS PROBLEM SHEET 1
+## Main definitions
 
-Q1
-Q2A
-Q3 -- done
-Q5
-Q6
-Q7
+* `centralizer H`: the subgroup consisting of elements of G that fix all h ∈ H under conjugation
+* `center`: the subgroup `Z(G)` of elements that commute with all g ∈ G
 
-GROUPS AND RINGS PROBLEM SHEET 2 Q9
+## Main statements
 
-GROUPS AND RINGS MIDTERM Q1 -- done
-
-CANT FIND BUT -- GROUP THEORY PROVE ANY INDEX 3 SUBGROUP OF AN ODD ORDER GROUP IS NORMAL
-
+* `cent_of_normal_is_normal`: The centralizer of a normal subgroup of G is normal
+* `sub_of_center_normal`: Any subgroup of the `Z(G)` is normal
+* `ind_2_subgroup_normal`: A subgroup of index 2 is normal
+* `G_quot_center_cylic_imp_G_abel`: If the quotient group `(G / Z(G)` is cyclic.
 -/
 
 -- MIDTERM Q1
@@ -32,31 +28,36 @@ variable {G H} {x : G}
 
 variable {y z : G}
 
+/-- 1 is in centralizer H-/
 theorem centralizer.one_mem : (1 : G) ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
-  rintro h _
+  -- 1 centralizes all elements of G so don't need hyp h ∈ H
+  intro h _
   group
   done
 
+/--centralizer H is closed under inverses-/
 theorem centralizer.inv_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}) :
     y⁻¹ ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
   intro h hh
   specialize hy h hh
-  rw [hy.symm]
+  --use hypothesis that y in centralizer H to rw h as g * h * g⁻¹
+  rw [←hy]
+  -- simplifies all hypotheses using group axioms
   group at *
   exact hy.symm
   done
 
+/--centralizer H is closed under multiplication-/
 theorem centralizer.mul_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h})
     (hz : z ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}) :
     y * z ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
   intro h hh
   specialize hy h hh
   specialize hz h hh
-  rw [mul_inv_rev, ←mul_assoc]
-  have hyz : y * z * h * z⁻¹ = y * (z * h * z⁻¹) := by group
-  rw [hyz, hz, hy]
+  rw [mul_inv_rev, ←mul_assoc, show y * z * h * z⁻¹ = y * (z * h * z⁻¹) by group, hz, hy]
   done
 
+/--The centralizer of a subgroup H is all the elements of G that fix all elements of H by conjugation-/
 def centralizer (H : Subgroup G) : Subgroup G
     where
   carrier := {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}
@@ -64,7 +65,8 @@ def centralizer (H : Subgroup G) : Subgroup G
   inv_mem' := centralizer.inv_mem
   mul_mem' := centralizer.mul_mem
 
-lemma cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal): (centralizer H).Normal:= by
+/--The centralizer of a normal subgroup is normal-/
+theorem cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal) : (centralizer H).Normal := by
   constructor
   intro n hn g h hh
   rw [show g * n * g⁻¹ * h * (g * n * g⁻¹)⁻¹ = g * (n * (g⁻¹ * h * g) * n⁻¹) * g⁻¹ by group]
@@ -76,7 +78,10 @@ lemma cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal): (centralize
   group
   done
 
+/--The center is the subgroup of elements which centralize the entire group G-/
 abbrev center := centralizer (⊤ : Subgroup G)
+
+/--Any subgroup of the center of G is normal-/
 theorem sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:= by
   constructor
   intro h hh g
@@ -86,20 +91,8 @@ theorem sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:=
   done
 
 -- PS1
-abbrev Z := AddGroup ℤ
-abbrev AutZ := {f | f  : ℤ ≃+ ℤ}
-
-lemma id_in_AutZ : ((fun z ↦ z) : AutZ) := by
-
-  done
-
-theorem setautgroupofZsize2 [Z : AddGroup ℤ] : ∀ x : AutZ, x = (fun z ↦ z) ∨ x = (fun z ↦ -z) := by
-  have hid : (id : ℤ ≃+ ℤ) AutZ := by
-    exact id_in_AutZ
-  def id2 : ℤ ≃+ ℤ := fun z ↦ z
-  done
-
 --q3
+/--Given two elements x and y of cardinality 2 set X which are not equal, any element of X is equal to x or is equal to y.-/
 lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
     (hxy: x≠y): ∀ z : X, z = x ∨ z = y := by
   intro z
@@ -113,7 +106,9 @@ lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
     exact h2 z hxz
   done
 
-lemma mk_g_nin_H_neq_mk_1 [Group G] {H: Subgroup G} {g : G} (hg :g ∉ H):
+/--If g ∉ H, g ∈ G, the coercion of g to type G ⧸ H is not equal to
+the coercion of 1 to type G ⧸ H.-/
+lemma mk_g_nin_H_neq_mk_1 [Group G] {H: Subgroup G} {g : G} (hg : g ∉ H):
     (g : G ⧸ H) ≠ ↑(1 : G) := by
   by_contra h
   rw [QuotientGroup.eq'] at h
@@ -123,6 +118,8 @@ lemma mk_g_nin_H_neq_mk_1 [Group G] {H: Subgroup G} {g : G} (hg :g ∉ H):
   group at h
   exact h
 
+/--For an index 2 subgroup H, the coercion to G ⧸ H of
+any g ∈ G is equal to the coercion of g⁻¹.-/
 lemma mk_g_eq_mk_g_inv [Group G] {H: Subgroup G} (g : G) (ind: Subgroup.index H = 2):
     (g : G ⧸ H) = ↑(g⁻¹) := by
   cases' em (g ∈ H) with hg hg
@@ -138,6 +135,7 @@ lemma mk_g_eq_mk_g_inv [Group G] {H: Subgroup G} (g : G) (ind: Subgroup.index H 
       exact r
 
 open scoped Pointwise
+/--An index 2 subgroup is normal.-/
 theorem ind_2_subgroup_normal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
   have h2: ∀g : G, g • (H : Set G) = op g • H := by
     intro g
@@ -168,7 +166,8 @@ theorem ind_2_subgroup_normal [Group G] (H: Subgroup G) (ind: Subgroup.index H =
 instance center_is_normal [Group G]: (centralizer (⊤: Subgroup G)).Normal := by
   exact sub_of_center_normal center (Eq.le rfl)
 
-theorem mem_center_iff : a ∈ center ↔ ∀ g : G, a * g = g * a := by
+/--Elements of the Z(G) commute with all elements of G-/
+lemma mem_center_iff : a ∈ center ↔ ∀ g : G, a * g = g * a := by
   constructor
   · intro a_cent g
     have gtop := Subgroup.mem_top g
@@ -181,7 +180,8 @@ theorem mem_center_iff : a ∈ center ↔ ∀ g : G, a * g = g * a := by
     group
   done
 
-theorem G_quot_center_cylic_imp_G_abel [Gg: Group G]
+/--If G ⧸ Z(G) is cyclic, then G is abelian.-/
+theorem G_quot_center_cylic_imp_G_abel [Group G]
     (h: ∃ (g : G), ∀ (x : G ⧸ center), x ∈ Subgroup.zpowers ↑g):
     ∀ a b : G, a * b = b * a := by
   intro a b
@@ -205,4 +205,4 @@ theorem G_quot_center_cylic_imp_G_abel [Gg: Group G]
   group
   done
 
-#lint
+#list_linters
