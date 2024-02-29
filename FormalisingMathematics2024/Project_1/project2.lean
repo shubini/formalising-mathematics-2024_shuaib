@@ -1,9 +1,7 @@
 import Mathlib.Tactic
 import LeanCopilot
 import Mathlib.SetTheory.Cardinal.Finite
-open AddGroup
 open QuotientGroup
-open CategoryTheory
 open MulOpposite
 
 /-!
@@ -17,7 +15,6 @@ open MulOpposite
 ## Main statements
 
 * `cent_of_normal_is_normal`: The centralizer of a normal subgroup of G is normal
-* `sub_of_center_normal`: Any subgroup of the `Z(G)` is normal
 * `ind_2_subgroup_normal`: A subgroup of index 2 is normal
 * `G_quot_center_cylic_imp_G_abel`: If the quotient group `(G / Z(G)` is cyclic.
 -/
@@ -90,7 +87,7 @@ theorem cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal) :
 abbrev center := centralizer (⊤ : Subgroup G)
 
 /--Any subgroup of the center of G is normal-/
-theorem sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) : H.Normal:= by
+lemma sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) : H.Normal:= by
   constructor
   intro h hh g
   specialize hSub hh g (Subgroup.mem_top g) --specialize hSub w/ g as a member of ⊤
@@ -232,5 +229,3 @@ theorem G_quot_center_cylic_imp_G_abel [Group G]
     ←mem_center_iff.mp hz]
   simp only [mul_assoc] -- all thats left is assoc
   done
-
-#lint
