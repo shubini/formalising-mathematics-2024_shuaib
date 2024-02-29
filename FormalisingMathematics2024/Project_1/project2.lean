@@ -76,9 +76,9 @@ lemma cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal): (centralize
   group
   done
 
-def center := centralizer (⊤ : Subgroup G)
-theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:= by
-  refine' ⟨?_⟩
+abbrev center := centralizer (⊤ : Subgroup G)
+theorem sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:= by
+  constructor
   intro h hh g
   specialize hSub hh g (Subgroup.mem_top g)
   rw [←eq_mul_of_mul_inv_eq hSub, mul_assoc, mul_inv_self g, mul_one]
@@ -86,17 +86,19 @@ theorem subofCentreNormal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:= by
   done
 
 -- PS1
-/- def Z := AddGroup ℤ
-def AutZ := Group ({f | f  : ℤ →* ℤ })
+abbrev Z := AddGroup ℤ
+abbrev AutZ := {f | f  : ℤ ≃+ ℤ}
 
-theorem setautgroupofZsize2 [Z : AddGroup ℤ] : Nat.card AutZ = 2:= by
-  have AutZnonempty : Nonempty AutZ := by exact Set.instNonemptyRange fun y => y
-  cases' AutZnonempty with el
-  rw [Nat.card_eq_two_iff' el]
-  have hid : (id: ℤ →* ℤ) : AutZ
+lemma id_in_AutZ : ((fun z ↦ z) : AutZ) := by
+
+  done
+
+theorem setautgroupofZsize2 [Z : AddGroup ℤ] : ∀ x : AutZ, x = (fun z ↦ z) ∨ x = (fun z ↦ -z) := by
+  have hid : (id : ℤ ≃+ ℤ) AutZ := by
+    exact id_in_AutZ
   def id2 : ℤ ≃+ ℤ := fun z ↦ z
   done
--/
+
 --q3
 lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
     (hxy: x≠y): ∀ z : X, z = x ∨ z = y := by
@@ -163,15 +165,25 @@ theorem ind_2_subgroup_normal [Group G] (H: Subgroup G) (ind: Subgroup.index H =
   exact normal_of_eq_cosets H h2
   done
 
-lemma center_is_normal [Group G]: (centralizer (⊤ : Subgroup G)).Normal:= by
-  have h : (⊤ : Subgroup G).Normal :=
-    by exact Subgroup.normal_of_characteristic ⊤
-  exact cent_of_normal_is_normal ⊤ h
+instance center_is_normal [Group G]: (centralizer (⊤: Subgroup G)).Normal := by
+  exact sub_of_center_normal center (Eq.le rfl)
+
+theorem mem_center_iff : a ∈ center ↔ ∀ g : G, a * g = g * a := by
+  constructor
+  · intro a_cent g
+    have gtop := Subgroup.mem_top g
+    specialize a_cent g gtop
+    nth_rewrite 2 [←a_cent]
+    group
+  · intro h g _
+    specialize h g
+    rw [h]
+    group
   done
 
-
-theorem G_quot_center_cylic_imp_G_abel [Gg: Group G] {center : Subgroup G}[n : center.Normal]
-    (h: ∃ (g : G ⧸ center), ∀ (x : G ⧸ center), x ∈ Subgroup.zpowers g): ∀ a b : G, a * b = b * a := by
+theorem G_quot_center_cylic_imp_G_abel [Gg: Group G]
+    (h: ∃ (g : G), ∀ (x : G ⧸ center), x ∈ Subgroup.zpowers ↑g):
+    ∀ a b : G, a * b = b * a := by
   intro a b
   obtain ⟨g, h⟩ := h
   have ha := h a
@@ -180,10 +192,17 @@ theorem G_quot_center_cylic_imp_G_abel [Gg: Group G] {center : Subgroup G}[n : c
   rw [Subgroup.mem_zpowers_iff] at hb
   obtain ⟨k₁, ha⟩ := ha
   obtain ⟨k₂, hb⟩ := hb
-  have hw : ∃ (w : center), a = (g ^ k₁) * w := by
-    sorry
-  have hz : ∃ (z : center), b = (g ^ k₂) * z := by
-    use 1
+  let w := (g ^ k₁)⁻¹ * a
+  have hw : w ∈ center := by
+    exact QuotientGroup.eq.mp ha
+  let z := (g ^ k₂)⁻¹ * b
+  have hz : z ∈ center := by
+    exact QuotientGroup.eq.mp hb
+  rw [show a = (g ^ k₁) * w by group, show b = (g ^ k₂) * z by group,
+    show g ^ k₁ * w * (g ^ k₂ * z) = g ^ k₁ * (w * (g ^ k₂ * z)) by group]
+  nth_rewrite 1 [mem_center_iff.mp hw,
+    show g ^ k₁ * (g ^ k₂ * z * w) = g ^ k₂ *(g ^ k₁ * z) * w by group, ←mem_center_iff.mp hz]
+  group
+  done
 
-  nth_rewrite 1 [hw]
 #lint
