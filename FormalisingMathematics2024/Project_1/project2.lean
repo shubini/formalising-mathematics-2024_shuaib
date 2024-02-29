@@ -30,7 +30,6 @@ variable {y z : G}
 
 /-- 1 is in centralizer H-/
 theorem centralizer.one_mem : (1 : G) ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
-  -- 1 centralizes all elements of G so don't need hyp h ∈ H
   intro h _
   group
   done
@@ -40,7 +39,7 @@ theorem centralizer.inv_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = 
     y⁻¹ ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
   intro h hh
   specialize hy h hh
-  --use hypothesis that y in centralizer H to rw h as g * h * g⁻¹
+  --use hypothesis that y in centralizer to rw h as g * h * g⁻¹
   rw [←hy]
   -- simplifies all hypotheses using group axioms
   group at *
@@ -51,13 +50,18 @@ theorem centralizer.inv_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = 
 theorem centralizer.mul_mem (hy : y ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h})
     (hz : z ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}) :
     y * z ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
+  -- intros h and hypothesis h ∈ H which are then used to specialise hy and hz
   intro h hh
   specialize hy h hh
   specialize hz h hh
+  -- the first three rewrites simplify the goal to y * (z * h * z⁻¹) * y⁻¹ = h,
+  --and then hypotheses that z and y centralize h is used to get goal h = h,
+  --which is closed by rw's rfl
   rw [mul_inv_rev, ←mul_assoc, show y * z * h * z⁻¹ = y * (z * h * z⁻¹) by group, hz, hy]
   done
 
-/--The centralizer of a subgroup H is all the elements of G that fix all elements of H by conjugation-/
+/--The centralizer of a subgroup H is all the
+elements of G that fix all elements of H by conjugation-/
 def centralizer (H : Subgroup G) : Subgroup G
     where
   carrier := {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h}
@@ -66,13 +70,17 @@ def centralizer (H : Subgroup G) : Subgroup G
   mul_mem' := centralizer.mul_mem
 
 /--The centralizer of a normal subgroup is normal-/
-theorem cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal) : (centralizer H).Normal := by
+theorem cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal) :
+    (centralizer H).Normal := by
   constructor
   intro n hn g h hh
+  -- rw using group axioms to write goal in a form where normality can be used
   rw [show g * n * g⁻¹ * h * (g * n * g⁻¹)⁻¹ = g * (n * (g⁻¹ * h * g) * n⁻¹) * g⁻¹ by group]
+  -- use normality of H to show (g⁻¹ * h * g) is in H
   have h2 : (g⁻¹ * h * g) ∈ H := by
     rw [show (g⁻¹ * h * g) = (g⁻¹ * h * g⁻¹⁻¹) by group]
     exact Subgroup.Normal.conj_mem H_norm h hh g⁻¹
+  -- use that n is in centralizer to rw goal without n, then solve goal using group axioms
   specialize hn (g⁻¹ * h * g) h2
   rw [hn]
   group
@@ -82,27 +90,31 @@ theorem cent_of_normal_is_normal (H : Subgroup G) (H_norm : H.Normal) : (central
 abbrev center := centralizer (⊤ : Subgroup G)
 
 /--Any subgroup of the center of G is normal-/
-theorem sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) :  H.Normal:= by
+theorem sub_of_center_normal (H : Subgroup G) (hSub: H ≤ center) : H.Normal:= by
   constructor
   intro h hh g
-  specialize hSub hh g (Subgroup.mem_top g)
+  specialize hSub hh g (Subgroup.mem_top g) --specialize hSub w/ g as a member of ⊤
+  -- ←eq_mul_of_mul_inv_eq hSub swaps g * h for h * g in goal, then use various group axioms
   rw [←eq_mul_of_mul_inv_eq hSub, mul_assoc, mul_inv_self g, mul_one]
   exact hh
   done
 
 -- PS1
---q3
-/--Given two elements x and y of cardinality 2 set X which are not equal, any element of X is equal to x or is equal to y.-/
+--Q3
+/--Given two elements x and y of cardinality 2 set X which are not equal,
+any element of X is equal to x or is equal to y.-/
 lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
     (hxy: x≠y): ∀ z : X, z = x ∨ z = y := by
   intro z
+  --Nat.card_eq_two_iff' says theres a unique non x value in a card 2 set, we call it y_
   obtain ⟨y_, ⟨_, h2⟩⟩ := (Nat.card_eq_two_iff' x).mp h
-  have hy: y = y_ := h2 y hxy.symm
+  have hy: y = y_ := h2 y hxy.symm -- since y_ is unique, y = y_
   rw [←hy] at h2
+  -- break down z into cases where z = x or z = y
   cases' eq_or_ne z x with hxz hxz
-  · left
+  · left -- goal z = x
     exact hxz
-  · right
+  · right -- goal z = y
     exact h2 z hxz
   done
 
@@ -110,59 +122,67 @@ lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
 the coercion of 1 to type G ⧸ H.-/
 lemma mk_g_nin_H_neq_mk_1 [Group G] {H: Subgroup G} {g : G} (hg : g ∉ H):
     (g : G ⧸ H) ≠ ↑(1 : G) := by
-  by_contra h
-  rw [QuotientGroup.eq'] at h
-  apply hg
-  rw [mul_one] at h
-  let h := inv_mem h
-  group at h
-  exact h
+  by_contra h -- add hypothesis h : ↑g = ↑1, change goal to False
+  rw [QuotientGroup.eq', mul_one] at h -- QuotientGroup.eq' gives g⁻¹ * 1 ∈ H
+  apply hg -- change goal to g ∈ H
+  exact (Subgroup.inv_mem_iff H).mp h -- iff version of inv_mem
 
 /--For an index 2 subgroup H, the coercion to G ⧸ H of
 any g ∈ G is equal to the coercion of g⁻¹.-/
 lemma mk_g_eq_mk_g_inv [Group G] {H: Subgroup G} (g : G) (ind: Subgroup.index H = 2):
     (g : G ⧸ H) = ↑(g⁻¹) := by
   cases' em (g ∈ H) with hg hg
+  -- g ∈ H case
   · rw [QuotientGroup.eq']
     exact mul_mem (inv_mem hg) (inv_mem hg)
+  -- g ∉ H case
   · have hxy := el_of_card_2_eqs_either_el (g : G ⧸ H) ↑(1 : G) ind (mk_g_nin_H_neq_mk_1 hg)
-    cases' hxy ↑g⁻¹ with l r
-    · exact l.symm
-    · rw [QuotientGroup.eq'] at r
-      group at r
+    cases' hxy ↑g⁻¹ with mk_g mk_1
+    -- split into cases mk g⁻¹ = mk g and mk g⁻¹ = mk 1
+    · exact mk_g.symm
+    · rw [QuotientGroup.eq', mul_one, inv_inv] at mk_1
+      -- we have g ∈ H and and g ∉ H so prove by contradiction
       by_contra
       apply hg
-      exact r
+      exact mk_1
 
 open scoped Pointwise
 /--An index 2 subgroup is normal.-/
-theorem ind_2_subgroup_normal [Group G] (H: Subgroup G) (ind: Subgroup.index H = 2) : H.Normal:= by
-  have h2: ∀g : G, g • (H : Set G) = op g • H := by
-    intro g
-    cases' em (g ∈ H) with hginH hgninH
-    · rw [leftCoset_mem_leftCoset H hginH, rightCoset_mem_rightCoset H hginH]
-    · have hygH := eq_class_eq_leftCoset H g
-      have hyHg : {(t:G) | ↑t = (g: G ⧸ H)} = op g • (H : Set G) := by
-        ext g₂
-        change ↑g₂ = (g: G ⧸ H) ↔ g₂ ∈ op g • (H : Set G)
-        have hy2 := (mk_g_eq_mk_g_inv g ind).symm
-        constructor
-        · intro hg2y
-          have hy1: ↑(g₂⁻¹) = (g : G ⧸ H) := by
-            rw [←mk_g_eq_mk_g_inv g₂ ind]
-            exact hg2y
-          rw [←hy2, QuotientGroup.eq', show g₂⁻¹⁻¹ = g₂ by group] at hy1
-          exact (mem_rightCoset_iff g).mpr hy1
-        · intro hg₂Hg
-          rw [(mem_rightCoset_iff g), show g₂= g₂⁻¹⁻¹ by group] at hg₂Hg
-          have h2:= QuotientGroup.eq'.mpr hg₂Hg
-          rw [hy2, ←mk_g_eq_mk_g_inv g₂ ind] at h2
-          exact h2
-      rw [hygH] at hyHg
-      exact hyHg
-  exact normal_of_eq_cosets H h2
+theorem ind_2_subgroup_normal [Group G] (H : Subgroup G) (ind : Subgroup.index H = 2) :
+    H.Normal := by
+  rw [normal_iff_eq_cosets] --change goal into something about cosets
+  intro g
+  -- take cases g ∈ H and g ∉ H
+  cases' em (g ∈ H) with hginH hgninH
+  · rw [leftCoset_mem_leftCoset H hginH, rightCoset_mem_rightCoset H hginH]
+  · have hygH := eq_class_eq_leftCoset H g -- gives left coset as set of G with specific mk val
+    -- want set of right cosets to be the same set
+    have hyHg : {(t : G) | ↑t = (g : G ⧸ H)} = op g • (H : Set G) := by
+      ext g₂
+      change ↑g₂ = (g : G ⧸ H) ↔ g₂ ∈ op g • (H : Set G)
+
+      constructor
+      -- if mk g₂ = mk g, then g₂ ∈ Hg
+      · intro hg2y
+        -- switch mk g₂ and mk g for mk g₂⁻¹ and mk g⁻¹, so QuotientGroup.eq' rws hg2y such that
+        -- it matches with mem_rightCoset_iff.mpr
+        rw [mk_g_eq_mk_g_inv g₂ ind, mk_g_eq_mk_g_inv g ind, QuotientGroup.eq',
+          show g₂⁻¹⁻¹ = g₂ by group] at hg2y
+        exact (mem_rightCoset_iff g).mpr hg2y
+
+        -- if g₂ ∈ Hg, then mk g₂ = mk g
+      · intro hg₂Hg
+        -- the same as before but backwards as everything is an iff
+        rw [(mem_rightCoset_iff g), show g₂= g₂⁻¹⁻¹ by group] at hg₂Hg
+        have h2:= QuotientGroup.eq'.mpr hg₂Hg
+        rw [(mk_g_eq_mk_g_inv g ind).symm, ←mk_g_eq_mk_g_inv g₂ ind] at h2
+        exact h2
+
+    rw [hygH] at hyHg -- left and right cosets are equal
+    exact hyHg
   done
 
+--Q5
 instance center_is_normal [Group G]: (centralizer (⊤: Subgroup G)).Normal := by
   exact sub_of_center_normal center (Eq.le rfl)
 
@@ -170,8 +190,7 @@ instance center_is_normal [Group G]: (centralizer (⊤: Subgroup G)).Normal := b
 lemma mem_center_iff : a ∈ center ↔ ∀ g : G, a * g = g * a := by
   constructor
   · intro a_cent g
-    have gtop := Subgroup.mem_top g
-    specialize a_cent g gtop
+    specialize a_cent g (Subgroup.mem_top g)
     nth_rewrite 2 [←a_cent]
     group
   · intro h g _
@@ -185,24 +204,33 @@ theorem G_quot_center_cylic_imp_G_abel [Group G]
     (h: ∃ (g : G), ∀ (x : G ⧸ center), x ∈ Subgroup.zpowers ↑g):
     ∀ a b : G, a * b = b * a := by
   intro a b
+  -- get generator of G ⧸ Z(G)
   obtain ⟨g, h⟩ := h
   have ha := h a
   have hb := h b
-  rw [Subgroup.mem_zpowers_iff] at ha
-  rw [Subgroup.mem_zpowers_iff] at hb
+
+  -- get k₁ and k₂ where mk a = mk (g) ^ k₁ and mk b = mk (g) ^ k₂
+  rw [Subgroup.mem_zpowers_iff] at ha hb
   obtain ⟨k₁, ha⟩ := ha
   obtain ⟨k₂, hb⟩ := hb
+
+  -- let w = (g ^ k₁)⁻¹ * a and z = (g ^ k₂)⁻¹ * b and show both of these are in center
   let w := (g ^ k₁)⁻¹ * a
   have hw : w ∈ center := by
     exact QuotientGroup.eq.mp ha
   let z := (g ^ k₂)⁻¹ * b
   have hz : z ∈ center := by
     exact QuotientGroup.eq.mp hb
-  rw [show a = (g ^ k₁) * w by group, show b = (g ^ k₂) * z by group,
-    show g ^ k₁ * w * (g ^ k₂ * z) = g ^ k₁ * (w * (g ^ k₂ * z)) by group]
-  nth_rewrite 1 [mem_center_iff.mp hw,
-    show g ^ k₁ * (g ^ k₂ * z * w) = g ^ k₂ *(g ^ k₁ * z) * w by group, ←mem_center_iff.mp hz]
-  group
+
+  -- rewrite goal in terms of w, z and g ^ k
+  rw [show a = (g ^ k₁) * w by group, show b = (g ^ k₂) * z by group]
+  -- using that w and z commute with everything in G (in center) and
+  -- that g ^ k₁ * g ^ k₂ = g ^ k₂ * g ^ k₁, we can reorder everything on LHS until
+  -- its the same order and the RHS
+  nth_rewrite 1 [show g ^ k₁ * w * (g ^ k₂ * z) = g ^ k₁ * (w * (g ^ k₂ * z)) by group,
+    mem_center_iff.mp hw, show g ^ k₁ * (g ^ k₂ * z * w) = g ^ k₂ *(g ^ k₁ * z) * w by group,
+    ←mem_center_iff.mp hz]
+  simp only [mul_assoc] -- all thats left is assoc
   done
 
-#list_linters
+#lint
