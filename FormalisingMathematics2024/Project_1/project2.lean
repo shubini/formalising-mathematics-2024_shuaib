@@ -27,7 +27,7 @@ CANT FIND BUT -- GROUP THEORY PROVE ANY INDEX 3 SUBGROUP OF AN ODD ORDER GROUP I
 -/
 
 -- MIDTERM Q1
-variable (G : Type) [Group G]  (H K : Subgroup G)
+variable (G : Type) [Group G]  (H : Subgroup G)
 variable {G H} {x : G}
 
 variable {y z : G}
@@ -169,7 +169,21 @@ lemma center_is_normal [Group G]: (centralizer (⊤ : Subgroup G)).Normal:= by
   exact cent_of_normal_is_normal ⊤ h
   done
 
-theorem G_quot_center_cylic_imp_G_abel [Group G] (h: Subgroup.isCyclic (QuotientGroup.Quotient.group (centralizer (⊤ : Subgroup G)) (cent_of_normal_is_normal ⊤ h))) : ∀ a b : G, a * b = b * a := by
-  intro a b
 
+theorem G_quot_center_cylic_imp_G_abel [Gg: Group G] {center : Subgroup G}[n : center.Normal]
+    (h: ∃ (g : G ⧸ center), ∀ (x : G ⧸ center), x ∈ Subgroup.zpowers g): ∀ a b : G, a * b = b * a := by
+  intro a b
+  obtain ⟨g, h⟩ := h
+  have ha := h a
+  have hb := h b
+  rw [Subgroup.mem_zpowers_iff] at ha
+  rw [Subgroup.mem_zpowers_iff] at hb
+  obtain ⟨k₁, ha⟩ := ha
+  obtain ⟨k₂, hb⟩ := hb
+  have hw : ∃ (w : center), a = (g ^ k₁) * w := by
+    sorry
+  have hz : ∃ (z : center), b = (g ^ k₂) * z := by
+    use 1
+
+  nth_rewrite 1 [hw]
 #lint
