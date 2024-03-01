@@ -157,24 +157,11 @@ theorem ind_2_subgroup_normal [Group G] (H : Subgroup G) (ind : Subgroup.index H
     have hyHg : {(t : G) | ↑t = (g : G ⧸ H)} = op g • (H : Set G) := by
       ext g₂
       change ↑g₂ = (g : G ⧸ H) ↔ g₂ ∈ op g • (H : Set G)
-
-      constructor
-      -- if mk g₂ = mk g, then g₂ ∈ Hg
-      · intro hg2y
         -- switch mk g₂ and mk g for mk g₂⁻¹ and mk g⁻¹, so QuotientGroup.eq' rws hg2y such that
-        -- it matches with mem_rightCoset_iff.mpr
-        rw [mk_g_eq_mk_g_inv g₂ ind, mk_g_eq_mk_g_inv g ind, QuotientGroup.eq',
-          show g₂⁻¹⁻¹ = g₂ by group] at hg2y
-        exact (mem_rightCoset_iff g).mpr hg2y
-
-        -- if g₂ ∈ Hg, then mk g₂ = mk g
-      · intro hg₂Hg
-        -- the same as before but backwards as everything is an iff
-        rw [(mem_rightCoset_iff g), show g₂= g₂⁻¹⁻¹ by group] at hg₂Hg
-        have h2:= QuotientGroup.eq'.mpr hg₂Hg
-        rw [(mk_g_eq_mk_g_inv g ind).symm, ←mk_g_eq_mk_g_inv g₂ ind] at h2
-        exact h2
-
+        -- it matches with mem_rightCoset_iff
+      rw [mk_g_eq_mk_g_inv g₂ ind, mk_g_eq_mk_g_inv g ind, QuotientGroup.eq',
+        show g₂⁻¹⁻¹ = g₂ by group, (mem_rightCoset_iff g)]
+      rfl -- def. true that g ∈ H as a subgroup iff g ∈ H as a set
     rw [hygH] at hyHg -- left and right cosets are equal
     exact hyHg
   done
