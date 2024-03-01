@@ -23,8 +23,6 @@ open MulOpposite
 variable (G : Type) [Group G]  (H : Subgroup G)
 variable {G H} {x : G}
 
-variable {y z : G}
-
 /-- 1 is in centralizer H-/
 theorem centralizer.one_mem : (1 : G) ∈ {g : G | ∀ h ∈ H,  g * h * g⁻¹ = h} := by
   intro h _
@@ -105,7 +103,7 @@ lemma el_of_card_2_eqs_either_el {X: Type} (x y : X) (h: Nat.card X = 2)
   intro z
   --Nat.card_eq_two_iff' says theres a unique non x value in a card 2 set, we call it y_
   obtain ⟨y_, ⟨_, h2⟩⟩ := (Nat.card_eq_two_iff' x).mp h
-  have hy: y = y_ := h2 y hxy.symm -- since y_ is unique, y = y_
+  have hy: y = y_ := h2 y hxy.symm -- since y_ is unique, and y ≠ x,  y = y_
   rw [←hy] at h2
   -- break down z into cases where z = x or z = y
   cases' eq_or_ne z x with hxz hxz
@@ -123,6 +121,7 @@ lemma mk_g_nin_H_neq_mk_1 [Group G] {H: Subgroup G} {g : G} (hg : g ∉ H):
   rw [QuotientGroup.eq', mul_one] at h -- QuotientGroup.eq' gives g⁻¹ * 1 ∈ H
   apply hg -- change goal to g ∈ H
   exact (Subgroup.inv_mem_iff H).mp h -- iff version of inv_mem
+  done
 
 /--For an index 2 subgroup H, the coercion to G ⧸ H of
 any g ∈ G is equal to the coercion of g⁻¹.-/
@@ -142,6 +141,7 @@ lemma mk_g_eq_mk_g_inv [Group G] {H: Subgroup G} (g : G) (ind: Subgroup.index H 
       by_contra
       apply hg
       exact mk_1
+  done
 
 open scoped Pointwise
 /--An index 2 subgroup is normal.-/
