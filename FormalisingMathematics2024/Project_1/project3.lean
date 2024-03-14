@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Mathlib.SetTheory.Cardinal.Finite
+import Mathlib.Data.MvPolynomial.PDeriv
 open MvPolynomial
 
 
@@ -44,3 +45,13 @@ theorem mul_poly_intersect_variety (a b : Fin 2) (h : a ≠ b)
       rw [hp, ←hb2]
       exact hb
   done
+
+def singular_points (f : MvPolynomial (Fin (n : ℕ)) ℂ) :=
+  {v ∈ AffineVariety f | ∀ i : (Fin n), eval v (pderiv i f) = 0}
+
+
+class AffineVariety'' (f : MvPolynomial (Fin (n : ℕ)) ℂ) where
+  points : (Fin n) → ℂ
+  eval_0 : eval points f = 0
+  singular_points : (Fin n) → ℂ
+  singular_points_eval_0 : eval singular_points f = 0 ∧ ∀ i : (Fin n), eval singular_points (pderiv i f) = 0
