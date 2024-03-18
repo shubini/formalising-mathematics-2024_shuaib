@@ -2,6 +2,7 @@ import Mathlib.Tactic
 import LeanCopilot
 import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Data.MvPolynomial.PDeriv
+import Mathlib
 open MvPolynomial
 
 def AffineVariety (f : MvPolynomial (Fin (n : ℕ)) ℂ) := {v : (Fin n) → ℂ | eval v f  = 0}
@@ -70,7 +71,7 @@ class AffineVariety'' (f : MvPolynomial (Fin (n : ℕ)) ℂ) where
 --def AffineVariety''.intersect {C₁ : AffineVariety f} {C₂ : AffineVariety g} :=
 
 def AffineVariety''' (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) :=
-  {v : (Fin n) → ℂ | ∀ p : I, eval v p = 0}
+  {v : (Fin n) → ℂ | ∀ p ∈ I, eval v p = 0}
 
 def AffineVariety'''' {I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)} (p : I) :=
     {v : (Fin n) → ℂ | eval v p = 0}
@@ -79,31 +80,42 @@ def intersect' {I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)} {p q : I}
     (_ : AffineVariety'''' p) (_ : AffineVariety'''' q) :=
     {v : (Fin n) → ℂ | eval v p = 0} ∩ {v : (Fin n) → ℂ | eval v q = 0}
 
+lemma p_in_I_implies_affineI_sub_affine_p (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ))
+    (hp: p ∈ I): AffineVariety''' I ≤ AffineVariety p := by
+  intro v hv
+  exact hv p hp
+  done
 
-theorem (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) (J : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ))
+theorem J_sub_I_implies_affine_I_sub_affine_J (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ))
+    (J : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) (h: J ≤ I): AffineVariety''' I ≤ AffineVariety''' J := by
+  intro v hv j hj
+  exact hv j (h hj)
+  done
 
 theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 ∈ I ↔
     AffineVariety''' I = ∅ := by
   constructor
   · rintro h
-    change {v : (Fin n) → ℂ | ∀ p : I, eval v p = 0} = ∅
-    have h1 : {v | (eval v) 1 = 0} = ∅ := by
-      by_contra h0
-      push_neg at h0
-      cases' h0 with v0 hv
-      have h02: (eval v0) 1 = 1 := by refine RingHom.map_one (eval v0)
-      change (eval v0) 1 = 0 at hv
-      rw [hv] at h02
-      · norm_num at h02
-      · exact ℤ
     by_contra h2
     push_neg at h2
     cases' h2 with v0 hv
-    have h1eq1: (eval v0) 1 = 1 := by refine RingHom.map_one (eval v0)
-    change ∀ (p : I), (eval v0) p = 0 at hv
-    specialize hv (1 : ↥I)
-
-
-
+    have h1eq1: eval v0 1 = 1 := by refine RingHom.map_one (eval v0)
+    specialize hv (1 : MvPolynomial (Fin (n : ℕ)) ℂ) h
+    rw [h1eq1] at hv
+    norm_num at hv
   · intro h
+    by_contra h
+    obtain ⟨m, ⟨hmaximal, hIsubm⟩⟩ := Ideal.exists_le_maximal I ((Ideal.ne_top_iff_one I).mpr h)
+    let Rmodm := Ideal.Quotient.commRing m
+    let π := Ideal.Quotient.mk m
+    let alg_m := RingHom.toAlgebra (Ideal.Quotient.mk m)
+    have h2 : Algebra.FiniteType (MvPolynomial (Fin n) ℂ) (MvPolynomial (Fin n) ℂ ⧸ m) :=
+      Module.Finite.finiteType (MvPolynomial (Fin n) ℂ ⧸ m)
+    have h3 := Algebra.FiniteType.mvPolynomial ℂ (Fin n)
+    have h4 := Algebra.FiniteType.trans h3 h2
+
+
+
+
+
   done
