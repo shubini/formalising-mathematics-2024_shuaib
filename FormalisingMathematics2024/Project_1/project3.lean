@@ -93,7 +93,7 @@ theorem J_sub_I_implies_affine_I_sub_affine_J (I : Ideal (MvPolynomial (Fin (n :
   exact hv j (h hj)
   done
 
-lemma zariskis_lemma (K: Type) (A : Type)[Field K] [Field A] [Algebra K A]: Algebra.FiniteType K A  → FiniteDimensional K A := by
+lemma zariskis_lemma (K: Type) (A : Type) [Field K] [Field A] [Algebra K A] (h: Algebra.FiniteType K A): FiniteDimensional K A := by
   sorry
 
 lemma alg_ext_of_AlgClosure_is_AlgClosure [Field K] [Field A] [Algebra K A]
@@ -123,7 +123,7 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
     have h3 := Algebra.FiniteType.mvPolynomial ℂ (Fin n)
     have h4 := Algebra.FiniteType.trans h3 h2
     have h5 : FiniteDimensional ℂ (MvPolynomial (Fin n) ℂ ⧸ m) := by
-      exact (zariskis_lemma ℂ (MvPolynomial (Fin n) ℂ ⧸ m)) h4
+      exact zariskis_lemma ℂ (MvPolynomial (Fin n) ℂ ⧸ m) h4
     have h6 := Algebra.IsAlgebraic.of_finite ℂ (MvPolynomial (Fin n) ℂ ⧸ m)
 
       --isAlgClosure_iff
@@ -131,9 +131,8 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
     have h8 := (isAlgClosure_iff ℂ ℂ).2 ⟨Complex.isAlgClosed, h8a⟩
     have h7 : IsAlgClosure ℂ (MvPolynomial (Fin n) ℂ ⧸ m) := by
       exact alg_ext_of_AlgClosure_is_AlgClosure h6 h8
-    let π := IsAlgClosure.equiv ℂ ℂ (MvPolynomial (Fin n) ℂ ⧸ m)
+    let φ := IsAlgClosure.equiv ℂ ℂ (MvPolynomial (Fin n) ℂ ⧸ m)
 
-
-
-
+    have h9 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, (eval v) ↑(π f) = 0 := by
+      exact
   done
