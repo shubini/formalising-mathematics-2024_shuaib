@@ -2,7 +2,7 @@ import Mathlib.Tactic
 import LeanCopilot
 import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Data.MvPolynomial.PDeriv
-import Mathlib
+import Mathlib.RingTheory.Algebraic
 open MvPolynomial
 
 def AffineVariety (f : MvPolynomial (Fin (n : ℕ)) ℂ) := {v : (Fin n) → ℂ | eval v f  = 0}
@@ -113,9 +113,7 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
       Module.Finite.finiteType (MvPolynomial (Fin n) ℂ ⧸ m)
     have h3 := Algebra.FiniteType.mvPolynomial ℂ (Fin n)
     have h4 := Algebra.FiniteType.trans h3 h2
-
-
-
+    have h4b : IsAlgebraic ℂ (MvPolynomial (Fin n) ℂ ⧸ m)
 
 
   done
