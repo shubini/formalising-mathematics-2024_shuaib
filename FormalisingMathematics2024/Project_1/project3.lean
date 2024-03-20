@@ -4,6 +4,7 @@ import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Data.MvPolynomial.PDeriv
 import Mathlib.RingTheory.Algebraic
 import Mathlib.Analysis.Complex.Polynomial
+import Mathlib.FieldTheory.IsAlgClosed.Basic
 open MvPolynomial
 
 def AffineVariety (f : MvPolynomial (Fin (n : ℕ)) ℂ) := {v : (Fin n) → ℂ | eval v f  = 0}
@@ -93,13 +94,15 @@ theorem J_sub_I_implies_affine_I_sub_affine_J (I : Ideal (MvPolynomial (Fin (n :
   exact hv j (h hj)
   done
 
-lemma zariskis_lemma (K: Type) (A : Type) [Field K] [Field A] [Algebra K A] (h: Algebra.FiniteType K A): FiniteDimensional K A := by
+theorem zariskis_lemma (K: Type) (A : Type) [Field K] [Field A] [Algebra K A] (h: Algebra.FiniteType K A): FiniteDimensional K A := by
   sorry
 
-lemma alg_ext_of_AlgClosure_is_AlgClosure [Field K] [Field A] [Algebra K A]
-    (h : Algebra.IsAlgebraic K A) (h2: IsAlgClosure K K) : IsAlgClosure K A := by
-  sorry
-  done
+lemma alg_ext_of_AlgClosed_is_AlgClosure [Field K] [Field A] [Algebra K A]
+    (h : Algebra.IsAlgebraic K A) (h2: IsAlgClosed K) : Function.Bijective (algebraMap K A) := by
+    constructor
+    · exact NoZeroSMulDivisors.algebraMap_injective K A
+    · exact IsAlgClosed.algebraMap_surjective_of_isAlgebraic h
+    done
 
 theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 ∈ I ↔
     AffineVariety''' I = ∅ := by
@@ -129,10 +132,18 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
       --isAlgClosure_iff
     have h8a : Algebra.IsAlgebraic ℂ ℂ := by exact Normal.isAlgebraic'
     have h8 := (isAlgClosure_iff ℂ ℂ).2 ⟨Complex.isAlgClosed, h8a⟩
-    have h7 : IsAlgClosure ℂ (MvPolynomial (Fin n) ℂ ⧸ m) := by
-      exact alg_ext_of_AlgClosure_is_AlgClosure h6 h8
-    let φ := IsAlgClosure.equiv ℂ ℂ (MvPolynomial (Fin n) ℂ ⧸ m)
+    have h7 : Function.Bijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m)) := by
+      exact alg_ext_of_AlgClosed_is_AlgClosure h6 Complex.isAlgClosed
+    let φ := RingEquiv.ofBijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m)) h7
 
-    have h9 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, (eval v) ↑(π f) = 0 := by
-      exact
+    have h9 : ∀ f ∈ m, Ideal.Quotient.mk m f = Ideal.Quotient.mk m 0:= by
+      intro f hf
+      rw [Ideal.Quotient.mk_eq_mk_iff_sub_mem]
+      ring_nf
+      exact hf
+
+    --have h10 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, eval v
+
+
+
   done
