@@ -42,10 +42,8 @@ theorem mul_poly_intersect_variety (a b : Fin 2) (h : a ≠ b)
   constructor
   · intro h
     constructor
-    · specialize h a
-      exact h
-    · specialize h b
-      exact h
+    · exact h a
+    · exact h b
   · rintro ⟨ha, hb⟩ p
     cases' eq_or_ne p a with hp hp
     · rw [hp, ha]
@@ -97,7 +95,7 @@ theorem J_sub_I_implies_affine_I_sub_affine_J (I : Ideal (MvPolynomial (Fin (n :
 theorem zariskis_lemma (K: Type) (A : Type) [Field K] [Field A] [Algebra K A] (h: Algebra.FiniteType K A): FiniteDimensional K A := by
   sorry
 
-lemma alg_ext_of_AlgClosed_is_AlgClosure [Field K] [Field A] [Algebra K A]
+lemma alg_ext_of_AlgClosed_bijects_base_field [Field K] [Field A] [Algebra K A]
     (h : Algebra.IsAlgebraic K A) (h2: IsAlgClosed K) : Function.Bijective (algebraMap K A) := by
     constructor
     · exact NoZeroSMulDivisors.algebraMap_injective K A
@@ -114,35 +112,31 @@ lemma AffineVariety_1 (k : Type) [Field k] : AffineVariety (1 : (MvPolynomial (F
   norm_num at hv
   done
 
+lemma quot_mvPolynomial_ring_maxIdeal_bijects_base_field {k : Type} [Field k] [hAlgClosed : IsAlgClosed k]
+    (m : Ideal (MvPolynomial (Fin n) k)) (_ : Ideal.IsMaximal m) :
+    Function.Bijective (algebraMap k (MvPolynomial (Fin n) k ⧸ m)) := by
+    let Rmodm := Ideal.Quotient.field m
+    have _ := zariskis_lemma k (MvPolynomial (Fin n) k ⧸ m)
+      (Algebra.FiniteType.trans (Algebra.FiniteType.mvPolynomial k (Fin n))
+      (Module.Finite.finiteType (MvPolynomial (Fin n) k ⧸ m)))
+    have h := Algebra.IsAlgebraic.of_finite k (MvPolynomial (Fin n) k ⧸ m)
+    exact alg_ext_of_AlgClosed_bijects_base_field h hAlgClosed
+
 theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 ∈ I ↔
     AffineVariety''' I = ∅ := by
   constructor
   · intro h
-    have h2 := p_in_I_implies_affineI_sub_affine_p I h
     have h3 : AffineVariety''' I ≤ ∅ := by
-      rw [AffineVariety_1 ℂ] at h2
-      exact h2
+      rw [←AffineVariety_1 ℂ]
+      exact p_in_I_implies_affineI_sub_affine_p I h
     exact Set.subset_eq_empty h3 rfl
   · intro h
     by_contra hnin
     obtain ⟨m, ⟨hmaximal, hIsubm⟩⟩ := Ideal.exists_le_maximal I ((Ideal.ne_top_iff_one I).mpr hnin)
     let Rmodm := Ideal.Quotient.field m
     let π := Ideal.Quotient.mk m
-    let alg_m := RingHom.toAlgebra (Ideal.Quotient.mk m)
-    have h2 : Algebra.FiniteType (MvPolynomial (Fin n) ℂ) (MvPolynomial (Fin n) ℂ ⧸ m) :=
-      Module.Finite.finiteType (MvPolynomial (Fin n) ℂ ⧸ m)
-    have h3 := Algebra.FiniteType.mvPolynomial ℂ (Fin n)
-    have h4 := Algebra.FiniteType.trans h3 h2
-    have h5 : FiniteDimensional ℂ (MvPolynomial (Fin n) ℂ ⧸ m) := by
-      exact zariskis_lemma ℂ (MvPolynomial (Fin n) ℂ ⧸ m) h4
-    have h6 := Algebra.IsAlgebraic.of_finite ℂ (MvPolynomial (Fin n) ℂ ⧸ m)
-
-      --isAlgClosure_iff
-    have h8a : Algebra.IsAlgebraic ℂ ℂ := by exact Normal.isAlgebraic'
-    have h8 := (isAlgClosure_iff ℂ ℂ).2 ⟨Complex.isAlgClosed, h8a⟩
-    have h7 : Function.Bijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m)) := by
-      exact alg_ext_of_AlgClosed_is_AlgClosure h6 Complex.isAlgClosed
-    let φ := RingEquiv.ofBijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m)) h7
+    let φ := RingEquiv.ofBijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m))
+      (quot_mvPolynomial_ring_maxIdeal_bijects_base_field m hmaximal)
 
     have h9 : ∀ f ∈ m, π f = π 0 := by
       intro f hf
@@ -150,7 +144,7 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
       ring_nf
       exact hf
 
-    have h10 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, eval v f
+    --have h10 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, eval v f
 
 
 
