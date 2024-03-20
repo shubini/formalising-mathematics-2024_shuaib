@@ -7,7 +7,7 @@ import Mathlib.Analysis.Complex.Polynomial
 import Mathlib.FieldTheory.IsAlgClosed.Basic
 open MvPolynomial
 
-def AffineVariety (f : MvPolynomial (Fin (n : ℕ)) ℂ) := {v : (Fin n) → ℂ | eval v f  = 0}
+def AffineVariety {k : Type} [Field k] (f : MvPolynomial (Fin (n : ℕ)) k) := {v : (Fin n) → k | eval v f  = 0}
 
 def union {f : MvPolynomial (Fin (n : ℕ)) ℂ} {g : MvPolynomial (Fin (n : ℕ)) ℂ}
     (_ : AffineVariety f) (_ : AffineVariety g) :=
@@ -83,7 +83,7 @@ def intersect' {I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)} {p q : I}
     {v : (Fin n) → ℂ | eval v p = 0} ∩ {v : (Fin n) → ℂ | eval v q = 0}
 
 lemma p_in_I_implies_affineI_sub_affine_p (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ))
-    (hp: p ∈ I): AffineVariety''' I ≤ AffineVariety p := by
+    (hp: p ∈ I) : AffineVariety''' I ≤ AffineVariety p := by
   intro v hv
   exact hv p hp
   done
@@ -104,17 +104,25 @@ lemma alg_ext_of_AlgClosed_is_AlgClosure [Field K] [Field A] [Algebra K A]
     · exact IsAlgClosed.algebraMap_surjective_of_isAlgebraic h
     done
 
+lemma AffineVariety_1 (k : Type) [Field k] : AffineVariety (1 : (MvPolynomial (Fin (n : ℕ)) k)) = ∅ := by
+  by_contra h2
+  push_neg at h2
+  cases' h2 with v0 hv
+  have h1eq1: eval v0 1 = 1 := by refine RingHom.map_one (eval v0)
+  change eval v0 1 = 0 at hv
+  rw [h1eq1] at hv
+  norm_num at hv
+  done
+
 theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 ∈ I ↔
     AffineVariety''' I = ∅ := by
   constructor
-  · rintro h
-    by_contra h2
-    push_neg at h2
-    cases' h2 with v0 hv
-    have h1eq1: eval v0 1 = 1 := by refine RingHom.map_one (eval v0)
-    specialize hv (1 : MvPolynomial (Fin (n : ℕ)) ℂ) h
-    rw [h1eq1] at hv
-    norm_num at hv
+  · intro h
+    have h2 := p_in_I_implies_affineI_sub_affine_p I h
+    have h3 : AffineVariety''' I ≤ ∅ := by
+      rw [AffineVariety_1 ℂ] at h2
+      exact h2
+    exact Set.subset_eq_empty h3 rfl
   · intro h
     by_contra hnin
     obtain ⟨m, ⟨hmaximal, hIsubm⟩⟩ := Ideal.exists_le_maximal I ((Ideal.ne_top_iff_one I).mpr hnin)
@@ -136,13 +144,13 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
       exact alg_ext_of_AlgClosed_is_AlgClosure h6 Complex.isAlgClosed
     let φ := RingEquiv.ofBijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m)) h7
 
-    have h9 : ∀ f ∈ m, Ideal.Quotient.mk m f = Ideal.Quotient.mk m 0:= by
+    have h9 : ∀ f ∈ m, π f = π 0 := by
       intro f hf
       rw [Ideal.Quotient.mk_eq_mk_iff_sub_mem]
       ring_nf
       exact hf
 
-    --have h10 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, eval v
+    have h10 : ∀ v : (Fin n) → ℂ, ∀ f ∈ m, eval v f
 
 
 
