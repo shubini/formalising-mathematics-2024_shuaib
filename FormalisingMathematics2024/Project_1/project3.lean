@@ -5,6 +5,9 @@ import Mathlib.Data.MvPolynomial.PDeriv
 import Mathlib.RingTheory.Algebraic
 import Mathlib.Analysis.Complex.Polynomial
 import Mathlib.FieldTheory.IsAlgClosed.Basic
+import Mathlib.FieldTheory.MvPolynomial
+import Mathlib.RingTheory.Jacobson
+
 open MvPolynomial
 
 def AffineVariety {k : Type} [Field k] (f : MvPolynomial (Fin (n : ℕ)) k) := {v : (Fin n) → k | eval v f  = 0}
@@ -92,15 +95,6 @@ theorem J_sub_I_implies_affine_I_sub_affine_J (I : Ideal (MvPolynomial (Fin (n :
   exact hv j (h hj)
   done
 
-theorem zariskis_lemma (K: Type) (A : Type) [Field K] [Field A] [Algebra K A]
-    (h: Algebra.FiniteType K A): FiniteDimensional K A := by
-  have h' := h
-  rw [Algebra.FiniteType.iff_quotient_mvPolynomial''] at h
-  obtain ⟨n, x, hi⟩ := h
-
-
-
-
 lemma alg_ext_of_AlgClosed_bijects_base_field [Field K] [Field A] [Algebra K A]
     (h : Algebra.IsAlgebraic K A) (h2: IsAlgClosed K) : Function.Bijective (algebraMap K A) := by
     constructor
@@ -118,14 +112,14 @@ lemma AffineVariety_1 (k : Type) [Field k] : AffineVariety (1 : (MvPolynomial (F
   norm_num at hv
   done
 
-lemma quot_mvPolynomial_ring_maxIdeal_bijects_base_field {k : Type} [Field k] [hAlgClosed : IsAlgClosed k]
+lemma quot_mvPolynomial_ring_maxIdeal_comp_C_bijective {k : Type} [Field k] [hAlgClosed : IsAlgClosed k]
     (m : Ideal (MvPolynomial (Fin n) k)) (_ : Ideal.IsMaximal m) :
-    Function.Bijective (algebraMap k (MvPolynomial (Fin n) k ⧸ m)) := by
+    Function.Bijective ((Ideal.Quotient.mk m).comp C) := by
   let Rmodm := Ideal.Quotient.field m
-  have _ := zariskis_lemma k (MvPolynomial (Fin n) k ⧸ m)
-    (Algebra.FiniteType.trans (Algebra.FiniteType.mvPolynomial k (Fin n))
-    (Module.Finite.finiteType (MvPolynomial (Fin n) k ⧸ m)))
-  exact alg_ext_of_AlgClosed_bijects_base_field (Algebra.IsAlgebraic.of_finite k (MvPolynomial (Fin n) k ⧸ m)) hAlgClosed
+  constructor
+  · exact RingHom.injective (RingHom.comp (Ideal.Quotient.mk m) C)
+  · exact IsAlgClosed.algebraMap_surjective_of_isIntegral' ((Ideal.Quotient.mk m).comp C)
+      (Ideal.MvPolynomial.comp_C_integral_of_surjective_of_jacobson _ Ideal.Quotient.mk_surjective)
   done
 
 lemma mk_maps_polys_in_ideal_to_0 {k : Type} [Field k] (I : Ideal (MvPolynomial (Fin (n : ℕ)) k)) :
@@ -145,7 +139,7 @@ lemma nonempty_le_nonempty {X : Type} {A B : Set X} (h : B ≤ A) (h2 : B ≠ �
   specialize h h2
   constructor
   exact h
-
+  done
 
 theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 ∈ I ↔
     AffineVariety''' I = ∅ := by
@@ -159,38 +153,40 @@ theorem weak_nullstellensatz (I : Ideal (MvPolynomial (Fin (n : ℕ)) ℂ)) : 1 
     by_contra hnin
     obtain ⟨m, ⟨hmaximal, hIsubm⟩⟩ := Ideal.exists_le_maximal I ((Ideal.ne_top_iff_one I).mpr hnin)
     let Rmodm := Ideal.Quotient.field m
-    let φ := Ideal.Quotient.mk m
-    let π := RingEquiv.ofBijective (algebraMap ℂ (MvPolynomial (Fin n) ℂ ⧸ m))
-      (quot_mvPolynomial_ring_maxIdeal_bijects_base_field m hmaximal)
+    let φ := RingEquiv.ofBijective ((Ideal.Quotient.mk m).comp C) (quot_mvPolynomial_ring_maxIdeal_comp_C_bijective m hmaximal)
+    let φ' := RingEquiv.symm φ
 
-    let π' := RingEquiv.symm π
-    let π'φ := RingHom.comp (RingEquiv.toRingHom π') φ
+    have φ'φ_is_id : (RingHom.comp (RingEquiv.symm φ).toRingHom φ) = RingHom.id _ := RingEquiv.symm_comp φ
 
-    have h10 : ∀ f ∈ m, π'φ f = 0 := by
+    let φ'mk := RingHom.comp φ'.toRingHom (Ideal.Quotient.mk m)
+    have h10 : ∀ f ∈ m, φ'mk f = 0 := by
+      change ∀ f ∈ m, φ' ((Ideal.Quotient.mk m) f) = 0
       intro f hf
-      change π' (φ f) = 0
       rw [(mk_maps_polys_in_ideal_to_0 m) f hf]
-      exact RingEquiv.map_zero π'
+      exact RingEquiv.map_zero φ'
 
-    let φ_mono : Fin n → ℂ := fun (i : Fin n) ↦ π'φ (X i)
+    let X_mapped : Fin n → ℂ := fun (i : Fin n) ↦ φ'mk (X i)
 
-    have h11 : eval φ_mono = π'φ := by
+    have h12 : eval X_mapped = φ'mk := by
       ext x
       swap
       · rw [eval_X]
-      · change (eval φ_mono) (C x) = π'φ (C x)
+      · change (eval X_mapped) (C x) = (RingHom.comp φ'mk C) x
         rw [eval_C]
-        change x = (π' (φ (C x)))
-        sorry
+        have h12a : RingHom.comp φ'mk C = RingHom.comp φ'.toRingHom φ := by
+          rfl
+        rw [h12a, φ'φ_is_id]
+        rfl
 
     have h12 : AffineVariety''' m ≠ ∅ := by
       push_neg
       constructor
       intro f hf
-      rw [h11, h10 f hf]
+      rw [h12, h10 f hf]
 
     apply nonempty_le_nonempty
       (J_sub_I_implies_affine_I_sub_affine_J m I hIsubm) h12
     exact h
-
   done
+
+#lint
